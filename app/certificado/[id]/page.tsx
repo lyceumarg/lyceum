@@ -49,6 +49,7 @@ export default async function CertificadoPage({ params }: { params: { id: string
 
       <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
         {/* PDF server-side: Fase 3 */}
+        <a href={`/certificado/${params.id}/pdf`} target="_blank" rel="noopener" className="btn accent">Descargar PDF</a>
         <Link href={`/verificar?id=${params.id}`} className="btn ghost">Ver verificación pública</Link>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import AuthButtons from "@/components/AuthButtons";
+import NavMenu from "@/components/NavMenu";
 import type { Rol } from "@/lib/auth";
 
 function iniciales(nombre: string) {
@@ -18,7 +18,6 @@ export default function Topbar({
   authed: boolean;
   rol: Rol | null;
 }) {
-  const staff = rol === "tenant_admin" || rol === "instructor";
   return (
     <header className="topbar">
       <div className="topbar-in">
@@ -33,13 +32,7 @@ export default function Topbar({
           )}
           <span>{academia}</span>
         </Link>
-        <nav className="nav">
-          <Link href="/">Catálogo</Link>
-          {authed && <Link href="/mis-cursos">Mis cursos</Link>}
-          {staff && <Link href="/panel">Panel</Link>}
-          <Link href="/verificar">Verificar</Link>
-          <AuthButtons authed={authed} />
-        </nav>
+        <NavMenu authed={authed} rol={rol} />
       </div>
     </header>
   );
