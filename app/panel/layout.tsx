@@ -12,6 +12,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <div className="panel-sub">
         <Link href="/panel" className="on">Cursos</Link>
         <Link href="/panel/participantes">Participantes</Link>
+        <Link href="/panel/ganancias">Ganancias</Link>
         <Link href="/panel/institucional">Institucional</Link>
       </div>
       {children}

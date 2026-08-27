@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import ExportCsvButton from "@/components/panel/ExportCsvButton";
 
 export const metadata = { title: "Participantes" };
 
@@ -19,6 +20,17 @@ export default async function ParticipantesPage() {
           <span className="eyebrow">Consola de la academia</span>
           <h2 style={{ fontSize: 26 }}>Participantes</h2>
         </div>
+        <ExportCsvButton
+          rows={rows ?? []}
+          filename="participantes"
+          columns={[
+            { key: "fecha_inscripcion", label: "Fecha", format: (v) => new Date(v).toLocaleDateString("es-AR") },
+            { key: "profiles", label: "Alumno", format: (v: any) => v?.nombre ?? "—" },
+            { key: "courses", label: "Curso", format: (v: any) => v?.titulo ?? "—" },
+            { key: "estado", label: "Estado" },
+            { key: "origen", label: "Origen" },
+          ]}
+        />
       </div>
 
       {rows && rows.length ? (
