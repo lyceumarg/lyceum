@@ -13,6 +13,16 @@ export default async function ParticipantesPage() {
     .order("fecha_inscripcion", { ascending: false })
     .limit(200);
 
+  // Filas ya formateadas como texto plano para el CSV (props serializables
+  // hacia el botón, que es un Client Component).
+  const csvRows = (rows ?? []).map((r: any) => ({
+    fecha: new Date(r.fecha_inscripcion).toLocaleDateString("es-AR"),
+    alumno: r.profiles?.nombre ?? "—",
+    curso: r.courses?.titulo ?? "—",
+    estado: r.estado,
+    origen: r.origen,
+  }));
+
   return (
     <>
       <div className="panel-head">
@@ -21,12 +31,12 @@ export default async function ParticipantesPage() {
           <h2 style={{ fontSize: 26 }}>Participantes</h2>
         </div>
         <ExportCsvButton
-          rows={rows ?? []}
+          rows={csvRows}
           filename="participantes"
           columns={[
-            { key: "fecha_inscripcion", label: "Fecha", format: (v) => new Date(v).toLocaleDateString("es-AR") },
-            { key: "profiles", label: "Alumno", format: (v: any) => v?.nombre ?? "—" },
-            { key: "courses", label: "Curso", format: (v: any) => v?.titulo ?? "—" },
+            { key: "fecha", label: "Fecha" },
+            { key: "alumno", label: "Alumno" },
+            { key: "curso", label: "Curso" },
             { key: "estado", label: "Estado" },
             { key: "origen", label: "Origen" },
           ]}

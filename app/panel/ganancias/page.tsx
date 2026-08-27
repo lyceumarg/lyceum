@@ -52,6 +52,13 @@ export default async function GananciasPage() {
     aprobado: "valid", pendiente: "warn", rechazado: "danger", reembolsado: "muted",
   };
 
+  const csvRows = orders.map((o) => ({
+    fecha: new Date(o.created_at).toLocaleDateString("es-AR"),
+    curso: o.courses?.titulo ?? "—",
+    estado: estadoLabel[o.estado] ?? o.estado,
+    monto: Number(o.monto),
+  }));
+
   return (
     <>
       <div className="panel-head">
@@ -60,11 +67,11 @@ export default async function GananciasPage() {
           <h2 style={{ fontSize: 26 }}>Ganancias</h2>
         </div>
         <ExportCsvButton
-          rows={orders}
+          rows={csvRows}
           filename="ordenes"
           columns={[
-            { key: "created_at", label: "Fecha", format: (v) => new Date(v).toLocaleDateString("es-AR") },
-            { key: "courses", label: "Curso", format: (v: OrderRow["courses"]) => v?.titulo ?? "—" },
+            { key: "fecha", label: "Fecha" },
+            { key: "curso", label: "Curso" },
             { key: "estado", label: "Estado" },
             { key: "monto", label: "Monto (ARS)" },
           ]}
