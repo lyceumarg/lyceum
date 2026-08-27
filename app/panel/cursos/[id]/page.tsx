@@ -13,7 +13,7 @@ export default async function EditorPage({ params }: { params: { id: string } })
 
   const { data: course } = await supabase
     .from("courses")
-    .select("id, titulo, descripcion, categoria, precio, estado, emite_participacion, emite_certificacion")
+    .select("id, titulo, descripcion, categoria, precio, estado, emite_participacion, emite_certificacion, capacitador_id")
     .eq("id", params.id)
     .maybeSingle();
   if (!course) notFound();
@@ -54,12 +54,20 @@ export default async function EditorPage({ params }: { params: { id: string } })
     .eq("course_id", params.id)
     .order("orden");
 
+  // Instructores del tenant (para el selector) — reutilizables entre cursos.
+  const { data: instructores } = await supabase
+    .from("instructores")
+    .select("id, nombre, headline, bio, foto_url, linkedin_url")
+    .eq("tenant_id", user.tenantId)
+    .order("created_at", { ascending: false });
+
   const data: EditorData = {
     course,
     tenantId: user.tenantId!,
     modulos,
     examCfg: cfg ?? { cant_preguntas: 10, nota_corte: 70, max_intentos: 3 },
     signers: (signers ?? []) as any,
+    instructores: (instructores ?? []) as any,
     preguntas: (preguntas ?? []).map((q: any) => ({
       id: q.id,
       enunciado: q.enunciado,

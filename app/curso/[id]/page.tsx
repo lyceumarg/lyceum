@@ -3,6 +3,13 @@ import { notFound } from "next/navigation";
 import { getCourseDetail } from "@/lib/queries";
 import EnrollButton from "./EnrollButton";
 
+type Capacitador = {
+  nombre: string;
+  headline: string | null;
+  bio: string | null;
+  foto_url: string | null;
+  linkedin_url: string | null;
+};
 type Detail = {
   id: string;
   titulo: string;
@@ -12,6 +19,7 @@ type Detail = {
   categoria: string | null;
   corte: number;
   modulos: { titulo: string; lecciones: string[] | null }[];
+  capacitador: Capacitador | null;
 };
 
 export default async function CursoPage({ params }: { params: { id: string } }) {
@@ -39,6 +47,27 @@ export default async function CursoPage({ params }: { params: { id: string } }) 
               <span className="cnt">{m.lecciones?.length ?? 0} lecciones</span>
             </div>
           ))}
+
+          {detail.capacitador && (
+            <div className="card instr-card" style={{ marginTop: 26 }}>
+              <span className="eyebrow">Dictado por</span>
+              <div className="instr-head">
+                {detail.capacitador.foto_url
+                  ? <img src={detail.capacitador.foto_url} alt={detail.capacitador.nombre} />
+                  : <span className="ph">{detail.capacitador.nombre.slice(0, 1).toUpperCase()}</span>}
+                <div>
+                  <h4>{detail.capacitador.nombre}</h4>
+                  {detail.capacitador.headline && <p className="instr-headline">{detail.capacitador.headline}</p>}
+                </div>
+              </div>
+              {detail.capacitador.bio && <p className="instr-bio">{detail.capacitador.bio}</p>}
+              {detail.capacitador.linkedin_url && (
+                <a href={detail.capacitador.linkedin_url} target="_blank" rel="noopener" className="instr-link">
+                  Ver perfil de LinkedIn →
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         <aside className="card buybox">

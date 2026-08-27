@@ -13,14 +13,16 @@ type Question = {
   options: { id: string; texto: string; es_correcta: boolean }[];
 };
 export type EditorData = {
-  course: { id: string; titulo: string; descripcion: string | null; categoria: string | null; precio: number; estado: string; emite_participacion: boolean; emite_certificacion: boolean };
+  course: { id: string; titulo: string; descripcion: string | null; categoria: string | null; precio: number; estado: string; emite_participacion: boolean; emite_certificacion: boolean; capacitador_id: string | null };
   tenantId: string;
   modulos: Module[];
   examCfg: { cant_preguntas: number; nota_corte: number; max_intentos: number };
   preguntas: Question[];
   signers: Signer[];
+  instructores: Instructor[];
 };
 type Signer = { id: string; nombre: string; cargo: string | null; firma_url: string | null; orden: number };
+export type Instructor = { id: string; nombre: string; headline: string | null; bio: string | null; foto_url: string | null; linkedin_url: string | null };
 
 const TIPOS: { t: Block["tipo"]; l: string }[] = [
   { t: "video", l: "Video" }, { t: "slides", l: "Slides" }, { t: "richtext", l: "Texto" },
@@ -44,6 +46,8 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   const [emiteP, setEmiteP] = useState(data.course.emite_participacion);
   const [emiteC, setEmiteC] = useState(data.course.emite_certificacion);
   const [signers, setSigners] = useState<Signer[]>(data.signers);
+  const [instructores, setInstructores] = useState<Instructor[]>(data.instructores);
+  const [capacitadorId, setCapacitadorId] = useState<string | null>(data.course.capacitador_id);
   const [err, setErr] = useState<string | null>(null);
 
   function fail(e: any) { setErr(e?.message ?? "Ocurrió un error"); }
@@ -72,6 +76,28 @@ export default function CourseEditor({ data }: { data: EditorData }) {
     const { error } = await supabase.from("certificate_signers").delete().eq("id", signers[i].id);
     if (error) return fail(error);
     setSigners(signers.filter((_, k) => k !== i));
+  }
+
+  // ---------- capacitador (identidad de quién dicta) ----------
+  async function asignarCapacitador(id: string | null) {
+    setCapacitadorId(id);
+    const { error } = await supabase.from("courses").update({ capacitador_id: id }).eq("id", courseId);
+    if (error) fail(error);
+  }
+  async function crearCapacitador(nombre: string, headline: string, bio: string, file: File | null) {
+    let foto_url: string | null = null;
+    if (file) {
+      const path = `${tenantId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+      const up = await supabase.storage.from("instructores").upload(path, file, { upsert: true });
+      if (up.error) return fail(up.error);
+      foto_url = supabase.storage.from("instructores").getPublicUrl(path).data.publicUrl;
+    }
+    const { data: ins, error } = await supabase.from("instructores")
+      .insert({ tenant_id: tenantId, nombre, headline: headline || null, bio: bio || null, foto_url })
+      .select("id, nombre, headline, bio, foto_url, linkedin_url").single();
+    if (error || !ins) return fail(error);
+    setInstructores([ins as Instructor, ...instructores]);
+    await asignarCapacitador(ins.id);
   }
 
   // ---------- curso ----------
@@ -210,6 +236,14 @@ export default function CourseEditor({ data }: { data: EditorData }) {
               {course.estado === "publicado" ? "Despublicar" : "Publicar"}
             </button>
           </div>
+        </div>
+        <div style={{ marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 16 }}>
+          <CapacitadorPicker
+            instructores={instructores}
+            capacitadorId={capacitadorId}
+            onSelect={asignarCapacitador}
+            onCreate={crearCapacitador}
+          />
         </div>
       </div>
 
@@ -477,6 +511,81 @@ function CertEditor({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---------- capacitador: quién dicta el curso (identidad, sin login) ----------
+function CapacitadorPicker({
+  instructores, capacitadorId, onSelect, onCreate,
+}: {
+  instructores: Instructor[]; capacitadorId: string | null;
+  onSelect: (id: string | null) => void;
+  onCreate: (nombre: string, headline: string, bio: string, file: File | null) => Promise<void>;
+}) {
+  const [creando, setCreando] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [bio, setBio] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const actual = instructores.find((i) => i.id === capacitadorId) || null;
+
+  async function crear() {
+    if (!nombre.trim()) return;
+    setBusy(true);
+    await onCreate(nombre, headline, bio, file);
+    setBusy(false);
+    setNombre(""); setHeadline(""); setBio(""); setFile(null); setCreando(false);
+  }
+
+  return (
+    <div>
+      <label className="ed-lab">Capacitador · quién dicta este curso</label>
+      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 0, marginBottom: 10 }}>
+        Le da identidad al curso. Se muestra en el catálogo y en la ficha del curso. No requiere que la persona tenga acceso al sistema.
+      </p>
+
+      {actual && (
+        <div className="blk-row" style={{ marginBottom: 10 }}>
+          {actual.foto_url && <img src={actual.foto_url} alt="" style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }} />}
+          <span className="t"><strong>{actual.nombre}</strong>{actual.headline ? ` · ${actual.headline}` : ""}</span>
+          <button className="tx" onClick={() => onSelect(null)}>✕</button>
+        </div>
+      )}
+
+      {!creando ? (
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <select
+            className="ed-inp" style={{ margin: 0, maxWidth: 280 }}
+            value={capacitadorId ?? ""}
+            onChange={(e) => onSelect(e.target.value || null)}
+          >
+            <option value="">Sin capacitador asignado</option>
+            {instructores.map((i) => <option key={i.id} value={i.id}>{i.nombre}</option>)}
+          </select>
+          <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setCreando(true)}>
+            + Nuevo capacitador
+          </button>
+        </div>
+      ) : (
+        <div style={{ padding: 14, border: "1px dashed var(--line-strong)", borderRadius: 4, background: "var(--surface-2)", display: "grid", gap: 8 }}>
+          <input className="ed-inp" style={{ margin: 0 }} placeholder="Nombre y apellido" value={nombre} onChange={(e) => setNombre(e.target.value)} />
+          <input className="ed-inp" style={{ margin: 0 }} placeholder="Headline (ej. Especialista en PLAFTFP · ex-BCRA)" value={headline} onChange={(e) => setHeadline(e.target.value)} />
+          <textarea className="ed-inp" style={{ margin: 0 }} rows={3} placeholder="Bio corta (opcional)" value={bio} onChange={(e) => setBio(e.target.value)} />
+          <div>
+            <label className="ed-lab">Foto (opcional)</label>
+            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="btn" style={{ padding: "8px 14px", fontSize: 13 }} onClick={crear} disabled={busy}>
+              {busy ? "Guardando…" : "Crear y asignar"}
+            </button>
+            <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setCreando(false)}>Cancelar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

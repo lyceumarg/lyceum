@@ -13,6 +13,8 @@ export type Course = {
   moneda: string;
   categoria: string | null;
   modulos: number;
+  instr_nombre?: string | null;
+  instr_foto_url?: string | null;
 };
 
 export default function CourseCard({ c }: { c: Course }) {
@@ -25,6 +27,14 @@ export default function CourseCard({ c }: { c: Course }) {
         {c.categoria && <span className="cat">{c.categoria}</span>}
         <h3>{c.titulo}</h3>
         <p className="desc">{c.descripcion}</p>
+        {c.instr_nombre && (
+          <div className="byline">
+            {c.instr_foto_url
+              ? <img src={c.instr_foto_url} alt="" />
+              : <span className="ph">{c.instr_nombre.slice(0, 1).toUpperCase()}</span>}
+            <span>Dictado por {c.instr_nombre}</span>
+          </div>
+        )}
         <div className="foot">
           <span className="price">
             ${new Intl.NumberFormat("es-AR").format(c.precio)}

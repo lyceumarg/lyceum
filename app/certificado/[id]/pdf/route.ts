@@ -29,7 +29,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   const pdf = await renderCertificatePdf(cert);
 
-  return new NextResponse(Buffer.from(pdf), {
+  return new NextResponse(pdf, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
