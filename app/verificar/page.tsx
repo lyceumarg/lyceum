@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import LyceumMark from "@/components/LyceumMark";
 
 type Firmante = { nombre: string; cargo: string | null; firma_url: string | null };
 type Cert = {
@@ -47,9 +48,13 @@ function Verificador() {
       </div>
 
       <div className="card" style={{ padding: "24px 26px" }}>
-        <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 16 }}>
+        <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 12 }}>
           Ingresá el ID del certificado para comprobar su validez. Cualquier persona puede verificar, sin cuenta.
         </p>
+        <span className="lyceum-credit" style={{ marginTop: 0, marginBottom: 16 }}>
+          <LyceumMark size={14} />
+          Verificación impulsada por Lyceum
+        </span>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <input
             className="mono"

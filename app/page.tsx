@@ -1,20 +1,21 @@
 import { getTenantByHost, isPlatformHost, currentHost } from "@/lib/tenant";
 import { getCatalog } from "@/lib/queries";
 import CourseCard, { type Course } from "@/components/CourseCard";
+import LyceumMark from "@/components/LyceumMark";
+import SitioA from "@/components/SitioA";
 
 export default async function Home() {
   const tenant = await getTenantByHost();
 
-  // Host de plataforma: acá viviría el Sitio A. En este repo (Sitio B) redirigimos
-  // conceptualmente; mostramos un aviso neutro sin marca de tenant.
+  // Host de plataforma: el Sitio A (landing comercial de Lyceum).
   if (!tenant) {
+    if (isPlatformHost()) return <SitioA />;
     return (
       <section className="wrap" style={{ padding: "80px 32px" }}>
         <span className="eyebrow">Dominio sin academia</span>
         <h1 style={{ fontSize: 32, marginTop: 8 }}>Esta dirección no tiene una academia asignada.</h1>
         <p style={{ color: "var(--muted)", marginTop: 10 }}>
           Verificá el dominio de acceso de tu organización.
-          {isPlatformHost() && " (Este es el host de plataforma: el sitio del proveedor corre aparte.)"}
         </p>
       </section>
     );
@@ -38,6 +39,10 @@ export default async function Home() {
           <a href="#catalogo" className="btn accent">Ver cursos</a>
           <a href="/mis-cursos" className="btn ghost">Mis cursos</a>
         </div>
+        <span className="lyceum-credit">
+          <LyceumMark size={14} />
+          Certificación verificable · tecnología Lyceum
+        </span>
         <div className="stats">
           <div><div className="n">{courses.length}</div><div className="l">Cursos disponibles</div></div>
           <div><div className="n">100%</div><div className="l">Certificados verificables</div></div>

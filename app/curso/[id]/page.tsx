@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourseDetail } from "@/lib/queries";
 import EnrollButton from "./EnrollButton";
+import LyceumMark from "@/components/LyceumMark";
 
 type Capacitador = {
   nombre: string;
@@ -38,6 +39,10 @@ export default async function CursoPage({ params }: { params: { id: string } }) 
             <span className="pill">{detail.modulos.length} módulos</span>
             <span className="pill">Examen certificante · corte {detail.corte}%</span>
           </div>
+          <span className="lyceum-credit">
+            <LyceumMark size={14} />
+            Certificación verificable · tecnología Lyceum
+          </span>
 
           <h3 style={{ fontSize: 19, margin: "26px 0 14px" }}>Contenido del programa</h3>
           {detail.modulos.map((m, i) => (

@@ -3,6 +3,10 @@
   --line:#d3dacd; --line-strong:#b7c1ac; --brass:#b0863a; --brass-soft:#e8dcc2;
   --valid:#2f7d5b; --valid-soft:#dcefe4; --muted:#5d6b60; --danger:#a1442f; --radius:4px;
   --accent:#1f5c9c; /* lo pisa el branding del tenant en runtime */
+  /* Identidad de Lyceum (proveedor): fija, no la pisa ningún tenant.
+     Se usa para el crédito "Powered by Lyceum" y el Sitio A. */
+  --lyceum-ink:#15171e; --lyceum-paper:#f5f5f2; --lyceum-indigo:#2a2f77;
+  --lyceum-indigo-2:#3a41a0; --lyceum-verify:#12795a; --lyceum-line:#d9dbe5; --lyceum-muted:#606377;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -299,3 +303,43 @@ textarea.ed-inp{resize:vertical}
 .pill.warn{background:var(--brass-soft);color:#7a5f1f;border-color:#e0cfa0}
 .pill.danger{background:#f4e1db;color:var(--danger);border-color:#e6c2b6}
 .pill.muted{background:var(--surface-2);color:var(--muted);border-color:var(--line)}
+
+/* ===== Powered by Lyceum (footer, siempre visible en toda página) ===== */
+.foot{display:flex;flex-direction:column;align-items:center;gap:10px}
+.powered-by{display:inline-flex;align-items:center;gap:6px;color:var(--lyceum-indigo);font-size:12.5px;font-weight:600;opacity:.92;transition:opacity .15s}
+.powered-by:hover{opacity:1}
+.powered-by svg{flex:0 0 auto}
+
+/* ===== Crédito de Lyceum, badge inline (catálogo, curso, certificado, verificar) ===== */
+.lyceum-credit{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:12.5px;font-weight:600;color:var(--lyceum-indigo);
+  background:#eef0fb;border:1px solid #d7dafa;border-radius:999px;
+  padding:7px 13px;margin-top:14px;
+}
+.lyceum-credit svg{flex:0 0 auto}
+
+/* ===== Sitio A — landing comercial de Lyceum (host de plataforma) ===== */
+.sitioa{font-family:"Space Grotesk",sans-serif;background:var(--lyceum-paper);color:var(--lyceum-ink);min-height:100vh}
+.sitioa-nav{display:flex;align-items:center;justify-content:space-between;max-width:1120px;margin:0 auto;padding:26px 28px 0}
+.sitioa-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.02em}
+.sitioa-nav .cta{background:var(--lyceum-indigo);color:var(--lyceum-paper);padding:11px 20px;border-radius:11px;font-weight:600;font-size:14px;text-decoration:none}
+.sitioa-hero{max-width:1120px;margin:0 auto;padding:70px 28px 50px}
+.sitioa-eyebrow{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--lyceum-indigo);display:inline-flex;align-items:center;gap:9px;margin-bottom:20px}
+.sitioa-eyebrow::before{content:"";width:26px;height:1.5px;background:var(--lyceum-indigo)}
+.sitioa-hero h1{font-weight:700;font-size:clamp(34px,6vw,62px);line-height:1.02;letter-spacing:-.02em;max-width:17ch}
+.sitioa-hero h1 em{font-style:normal;color:var(--lyceum-indigo)}
+.sitioa-hero p{font-size:17px;color:#3a3d4d;max-width:52ch;margin:22px 0 28px}
+.sitioa-cta{display:flex;gap:14px;flex-wrap:wrap}
+.sitioa-btn{font-weight:600;font-size:15px;padding:14px 24px;border-radius:11px;text-decoration:none;display:inline-flex;align-items:center;gap:9px;border:0;cursor:pointer}
+.sitioa-btn.primary{background:var(--lyceum-indigo);color:var(--lyceum-paper)}
+.sitioa-btn.ghost{background:none;color:var(--lyceum-ink);border:1.5px solid var(--lyceum-line)}
+.sitioa-steps{max-width:1120px;margin:0 auto;padding:40px 28px 80px}
+.sitioa-steps h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.16em;color:var(--lyceum-muted);margin-bottom:26px;font-family:"JetBrains Mono",monospace}
+.sitioa-steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.sitioa-step{padding:24px;border:1px solid var(--lyceum-line);border-radius:14px;background:#fff}
+.sitioa-step .n{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--lyceum-indigo);font-weight:700}
+.sitioa-step h3{font-weight:700;font-size:18px;margin:12px 0 6px;letter-spacing:-.01em}
+.sitioa-step p{font-size:13.5px;color:var(--lyceum-muted)}
+.sitioa-footer{max-width:1120px;margin:0 auto;padding:30px 28px 50px;border-top:1px solid var(--lyceum-line);font-size:11.5px;letter-spacing:.04em;color:var(--lyceum-muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media(max-width:760px){.sitioa-steps-grid{grid-template-columns:1fr}}

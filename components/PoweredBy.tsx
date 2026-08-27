@@ -1,20 +1,13 @@
-"use client";
-import { usePathname } from "next/navigation";
+import LyceumMark from "@/components/LyceumMark";
 
-// "Powered by Lyceum" opcional (flag powered_by, derivado del plan del tenant).
-// Regla dura de aislamiento de marca: NO se muestra en el certificado ni en la
-// verificación pública, que llevan solo la autoridad de la academia emisora.
-export default function PoweredBy({ enabled }: { enabled: boolean }) {
-  const path = usePathname() || "";
-  if (!enabled) return null;
-  if (path.startsWith("/verificar") || path.startsWith("/certificado")) return null;
-
+// "Powered by Lyceum": presencia constante en TODA página de toda academia
+// (incluidas certificado y verificación) — es la identidad del proveedor,
+// visible siempre, sin opción de marca blanca.
+export default function PoweredBy() {
   return (
-    <>
-      {" · "}
-      <a href="https://lyceum.com" target="_blank" rel="noopener" style={{ color: "var(--muted)" }}>
-        Powered by Lyceum
-      </a>
-    </>
+    <a href="https://lyceum.com" target="_blank" rel="noopener" className="powered-by">
+      <LyceumMark size={14} />
+      Powered by Lyceum
+    </a>
   );
 }

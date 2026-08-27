@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { verifyCertificate } from "@/lib/queries";
+import LyceumMark from "@/components/LyceumMark";
 
 export const metadata = { title: "Certificado" };
 
@@ -48,9 +49,15 @@ export default async function CertificadoPage({ params }: { params: { id: string
       </div>
 
       <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
-        {/* PDF server-side: Fase 3 */}
         <a href={`/certificado/${params.id}/pdf`} target="_blank" rel="noopener" className="btn accent">Descargar PDF</a>
         <Link href={`/verificar?id=${params.id}`} className="btn ghost">Ver verificación pública</Link>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+        <span className="lyceum-credit">
+          <LyceumMark size={14} />
+          Emisión y verificación con tecnología Lyceum
+        </span>
       </div>
     </div>
   );

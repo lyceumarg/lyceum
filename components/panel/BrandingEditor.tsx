@@ -66,7 +66,7 @@ export default function BrandingEditor({ tenantId, initial }: { tenantId: string
         </div>
 
         <div style={{ marginTop: 16, fontSize: 12.5, color: "var(--muted)" }}>
-          <strong>“Powered by Lyceum”:</strong> {initial.powered_by ? "visible" : "oculto"} (definido por el plan; no editable acá).
+          Todas las academias incluyen <strong>“Powered by Lyceum”</strong> en el pie de página.
         </div>
       </div>
 
