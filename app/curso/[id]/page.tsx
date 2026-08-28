@@ -32,12 +32,12 @@ export default async function CursoPage({ params }: { params: { id: string } }) 
       <Link href="/" className="back">← Volver al catálogo</Link>
       <div className="detail-grid">
         <div>
-          {detail.categoria && <span className="eyebrow">{detail.categoria}</span>}
+          {detail.categoria && <span className="eyebrow t">{detail.categoria}</span>}
           <h1 style={{ fontSize: 32, fontWeight: 800, margin: "6px 0 14px" }}>{detail.titulo}</h1>
           <p style={{ color: "var(--muted)", fontSize: 15.5, maxWidth: "60ch" }}>{detail.descripcion}</p>
           <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
-            <span className="pill">{detail.modulos.length} módulos</span>
-            <span className="pill">Examen certificante · corte {detail.corte}%</span>
+            <span className="pill t">{detail.modulos.length} módulos</span>
+            <span className="pill t">Examen certificante · corte {detail.corte}%</span>
           </div>
           <span className="lyceum-credit">
             <LyceumMark size={14} />
@@ -79,16 +79,15 @@ export default async function CursoPage({ params }: { params: { id: string } }) 
           <div className="price">
             ${new Intl.NumberFormat("es-AR").format(detail.precio)} <small>{detail.moneda}</small>
           </div>
-          <ul style={{ listStyle: "none", margin: "18px 0", fontSize: 13.5, color: "var(--ink)" }}>
-            <li style={{ padding: "5px 0" }}>Material interactivo</li>
-            <li style={{ padding: "5px 0" }}>Examen de certificación final</li>
-            <li style={{ padding: "5px 0" }}>Certificado verificable con ID único</li>
+          <ul>
+            <li>Material interactivo</li>
+            <li>Examen de certificación final</li>
+            <li>Certificado verificable con ID único</li>
+            <li>Acceso ilimitado al contenido</li>
           </ul>
           {/* La inscripción real dispara checkout Mercado Pago (Fase 2). */}
           <EnrollButton courseId={detail.id} />
-          <p className="eyebrow" style={{ textAlign: "center", marginTop: 12 }}>
-            Pago protegido con Mercado Pago
-          </p>
+          <p className="fineprint">Pago protegido con Mercado Pago</p>
         </aside>
       </div>
     </div>

@@ -1,8 +1,9 @@
 "use client";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import LyceumMark from "@/components/LyceumMark";
+import { scrambleText } from "@/lib/motion";
 
 type Firmante = { nombre: string; cargo: string | null; firma_url: string | null };
 type Cert = {
@@ -22,6 +23,8 @@ function Verificador() {
   const [id, setId] = useState(params.get("id") ?? "");
   const [cert, setCert] = useState<Cert | null>(null);
   const [estado, setEstado] = useState<"idle" | "loading" | "notfound">("idle");
+  const titularRef = useRef<HTMLSpanElement>(null);
+  const checkRef = useRef<SVGSVGElement>(null);
 
   async function verificar(idPublico: string) {
     if (!idPublico.trim()) return;
@@ -38,32 +41,37 @@ function Verificador() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <div className="wrap" style={{ maxWidth: 560 }}>
-      <div className="sec-head">
-        <div>
-          <span className="eyebrow">/verificar</span>
-          <h2>Verificación de certificados</h2>
-        </div>
-      </div>
+  useEffect(() => {
+    if (!cert) return;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    checkRef.current?.classList.remove("draw");
+    scrambleText(titularRef.current, cert.titular, () => checkRef.current?.classList.add("draw"), reduce);
+  }, [cert]);
 
-      <div className="card" style={{ padding: "24px 26px" }}>
-        <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 12 }}>
-          Ingresá el ID del certificado para comprobar su validez. Cualquier persona puede verificar, sin cuenta.
+  return (
+    <div className="wrap">
+      <div className="verify-hero">
+        <span className="eyebrow" style={{ justifyContent: "center" }}>Verificación pública</span>
+        <h1 style={{ fontSize: "clamp(28px,4.4vw,40px)", marginTop: 14 }}>Comprobá cualquier credencial.</h1>
+        <p style={{ color: "var(--muted)", marginTop: 16 }}>
+          Ingresá el identificador del certificado. No hace falta cuenta.
         </p>
-        <span className="lyceum-credit" style={{ marginTop: 0, marginBottom: 16 }}>
+        <span className="lyceum-credit">
           <LyceumMark size={14} />
           Verificación impulsada por Lyceum
         </span>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      </div>
+
+      <div className="verify-box">
+        <div className="vform light">
           <input
             className="mono"
             value={id}
             onChange={(e) => setId(e.target.value)}
             placeholder="ABE-2026-XXXX"
-            style={{ flex: 1, minWidth: 180, padding: "12px 14px", border: "1px solid var(--line-strong)", borderRadius: 4, fontSize: 14, background: "var(--surface)" }}
+            onKeyDown={(e) => e.key === "Enter" && verificar(id)}
           />
-          <button className="btn" onClick={() => verificar(id)} disabled={estado === "loading"}>
+          <button className="btn sm" onClick={() => verificar(id)} disabled={estado === "loading"}>
             {estado === "loading" ? "Verificando…" : "Verificar"}
           </button>
         </div>
@@ -75,12 +83,15 @@ function Verificador() {
       </div>
 
       {cert && (
-        <div className="card" style={{ marginTop: 18, padding: "22px 26px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-            <span className="pill valid">● {cert.estado === "valido" ? "Válido" : "Revocado"}</span>
-            <div style={{ fontFamily: "Archivo", fontWeight: 800, fontSize: 18 }}>{cert.academia}</div>
-          </div>
-          <div className="vfield"><span className="k">Titular</span><span className="v">{cert.titular}</span></div>
+        <div className="verify-result">
+          <span className="status-pill">
+            <svg ref={checkRef} className="check" viewBox="0 0 24 24" width="14" height="14">
+              <path d="M5 12.5l4 4L19 7" stroke="#12795a" />
+            </svg>
+            {cert.estado === "valido" ? "Válido" : "Revocado"}
+          </span>
+          <div className="vfield"><span className="k">Titular</span><span className="v" ref={titularRef}></span></div>
+          <div className="vfield"><span className="k">Academia</span><span className="v">{cert.academia}</span></div>
           <div className="vfield"><span className="k">Programa</span><span className="v">{cert.curso}</span></div>
           <div className="vfield"><span className="k">Tipo</span><span className="v">{cert.tipo === "participacion" ? "Participación" : "Aprobación"}</span></div>
           {cert.tipo !== "participacion" && cert.puntaje != null && (
@@ -91,7 +102,7 @@ function Verificador() {
             <span className="v">{new Date(cert.fecha_emision).toLocaleDateString("es-AR")}</span>
           </div>
           {!!cert.firmantes?.length && (
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 16 }}>
+            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--line)" }}>
               {cert.firmantes.map((s, i) => (
                 <div key={i} style={{ fontSize: 12.5, color: "var(--muted)" }}>
                   {s.firma_url && <img src={s.firma_url} alt="" style={{ display: "block", height: 34, objectFit: "contain", marginBottom: 3 }} />}

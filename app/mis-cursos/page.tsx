@@ -28,7 +28,7 @@ export default async function MisCursos() {
       </div>
 
       {rows.length ? (
-        <div className="dash-grid">
+        <div className="enrolled-grid">
           {rows.map((r) => {
             const pct = r.total ? Math.round((r.done / r.total) * 100) : 0;
             return (

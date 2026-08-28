@@ -62,7 +62,7 @@ export default function BrandingEditor({ tenantId, initial }: { tenantId: string
           onChange={(e) => { const f = e.target.files?.[0]; if (f) subirLogo(f); }} />
 
         <div style={{ marginTop: 20, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
-          <button className="btn" onClick={guardar} disabled={saving}>{saving ? "Guardando…" : "Guardar cambios"}</button>
+          <button className="btn accent" onClick={guardar} disabled={saving}>{saving ? "Guardando…" : "Guardar cambios"}</button>
         </div>
 
         <div style={{ marginTop: 16, fontSize: 12.5, color: "var(--muted)" }}>

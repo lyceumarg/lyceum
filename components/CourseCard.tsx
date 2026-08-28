@@ -1,10 +1,5 @@
 import Link from "next/link";
 
-function code(cat: string | null, titulo: string) {
-  const src = (cat?.split("·").pop() ?? titulo).trim();
-  return src.replace(/[^A-Za-zÁÉÍÓÚÑ]/g, "").slice(0, 3).toUpperCase() || "CUR";
-}
-
 export type Course = {
   id: string;
   titulo: string;
@@ -19,27 +14,24 @@ export type Course = {
 
 export default function CourseCard({ c }: { c: Course }) {
   return (
-    <Link href={`/curso/${c.id}`} className="card course">
-      <div className="thumb">
-        <span className="code">{code(c.categoria, c.titulo)}</span>
-      </div>
+    <Link href={`/curso/${c.id}`} className="course">
+      <div className="band">{c.categoria && <span className="k">{c.categoria}</span>}</div>
       <div className="body">
-        {c.categoria && <span className="cat">{c.categoria}</span>}
-        <h3>{c.titulo}</h3>
-        <p className="desc">{c.descripcion}</p>
+        <h4>{c.titulo}</h4>
+        <span className="badge">✓ Certifica</span>
         {c.instr_nombre && (
-          <div className="byline">
-            {c.instr_foto_url
-              ? <img src={c.instr_foto_url} alt="" />
-              : <span className="ph">{c.instr_nombre.slice(0, 1).toUpperCase()}</span>}
-            <span>Dictado por {c.instr_nombre}</span>
+          <div className="instr">
+            {c.instr_foto_url ? (
+              <img src={c.instr_foto_url} alt="" style={{ width: 20, height: 20, borderRadius: "50%", objectFit: "cover" }} />
+            ) : (
+              <span className="ph">{c.instr_nombre.slice(0, 1).toUpperCase()}</span>
+            )}
+            Dictado por {c.instr_nombre}
           </div>
         )}
         <div className="foot">
-          <span className="price">
-            ${new Intl.NumberFormat("es-AR").format(c.precio)}
-          </span>
-          <span className="eyebrow">{c.modulos} módulos</span>
+          <span>{c.modulos} módulos</span>
+          <span className="price">${new Intl.NumberFormat("es-AR").format(c.precio)}</span>
         </div>
       </div>
     </Link>

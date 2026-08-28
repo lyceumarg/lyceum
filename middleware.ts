@@ -36,6 +36,10 @@ export async function middleware(request: NextRequest) {
 
   const rol = (user?.app_metadata as { rol?: string } | undefined)?.rol ?? null;
 
+  // Exponemos el pathname a los Server Components (p. ej. el layout raíz,
+  // para no renderizar el nav/footer públicos dentro de /panel).
+  response.headers.set("x-pathname", path);
+
   // --- Sitio A: solo el proveedor. Nadie de un tenant entra acá. ---
   if (isPlatform) {
     if (path.startsWith("/admin") && rol !== "platform_admin") {

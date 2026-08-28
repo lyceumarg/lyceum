@@ -31,7 +31,7 @@ export default function NewCourseButton() {
   }
 
   return (
-    <button className="btn" onClick={crear} disabled={loading}>
+    <button className="btn accent" onClick={crear} disabled={loading}>
       {loading ? "Creando…" : "+ Nuevo curso"}
     </button>
   );

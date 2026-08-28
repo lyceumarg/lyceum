@@ -370,7 +370,7 @@ function BlockAdder({ onAdd }: { onAdd: (t: Block["tipo"], c: Record<string, any
             <input className="ed-inp" placeholder="Opción 4" onChange={set("o3")} />
             <input className="ed-inp" placeholder="N° de opción correcta (1-4)" onChange={set("ans")} />
           </>)}
-          <button className="btn" style={{ padding: "8px 14px", fontSize: 13 }} onClick={confirmar}>Agregar</button>
+          <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }} onClick={confirmar}>Agregar</button>
         </div>
       )}
     </div>
@@ -414,7 +414,7 @@ function ExamEditor({
 
       <div className="panel-head" style={{ margin: "0 0 14px" }}>
         <h3 style={{ fontSize: 18 }}>Banco de preguntas ({qs.length})</h3>
-        <button className="btn" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setOpen(!open)}>+ Agregar pregunta</button>
+        <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setOpen(!open)}>+ Agregar pregunta</button>
       </div>
 
       {open && (
@@ -431,7 +431,7 @@ function ExamEditor({
           ))}
           <label className="ed-lab" style={{ marginTop: 6 }}>Explicación (opcional)</label>
           <textarea className="ed-inp" rows={2} value={exp} onChange={(e) => setExp(e.target.value)} />
-          <button className="btn" style={{ padding: "8px 14px", fontSize: 13 }} onClick={guardar}>Guardar pregunta</button>
+          <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }} onClick={guardar}>Guardar pregunta</button>
         </div>
       )}
 
@@ -506,7 +506,7 @@ function CertEditor({
             <label className="ed-lab">Firma digitalizada (PNG con fondo transparente, ideal)</label>
             <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
-          <button className="btn" style={{ padding: "8px 14px", fontSize: 13, justifySelf: "start" }} onClick={add} disabled={busy}>
+          <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13, justifySelf: "start" }} onClick={add} disabled={busy}>
             {busy ? "Subiendo…" : "+ Agregar firmante"}
           </button>
         </div>
@@ -579,7 +579,7 @@ function CapacitadorPicker({
             <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn" style={{ padding: "8px 14px", fontSize: 13 }} onClick={crear} disabled={busy}>
+            <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }} onClick={crear} disabled={busy}>
               {busy ? "Guardando…" : "Crear y asignar"}
             </button>
             <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setCreando(false)}>Cancelar</button>
