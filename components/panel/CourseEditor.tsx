@@ -35,7 +35,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   const { tenantId } = data;
   const courseId = data.course.id;
 
-  const [tab, setTab] = useState<"c" | "e" | "cert">("c");
+  const [tab, setTab] = useState<"c" | "e" | "cert" | "masiva">("c");
   const [course, setCourse] = useState(data.course);
   const [mods, setMods] = useState<Module[]>(data.modulos);
   const [sel, setSel] = useState<{ m: number; l: number } | null>(
@@ -251,6 +251,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
         <button className={`tab${tab === "c" ? " on" : ""}`} onClick={() => setTab("c")}>Contenido</button>
         <button className={`tab${tab === "e" ? " on" : ""}`} onClick={() => setTab("e")}>Examen de certificación</button>
         <button className={`tab${tab === "cert" ? " on" : ""}`} onClick={() => setTab("cert")}>Certificado</button>
+        <button className={`tab${tab === "masiva" ? " on" : ""}`} onClick={() => setTab("masiva")}>Inscripción masiva</button>
       </div>
 
       {tab === "c" ? (
@@ -308,8 +309,10 @@ export default function CourseEditor({ data }: { data: EditorData }) {
         </div>
       ) : tab === "e" ? (
         <ExamEditor cfg={cfg} qs={qs} onCfg={saveCfg} onAdd={addQuestion} onDel={delQuestion} />
-      ) : (
+      ) : tab === "cert" ? (
         <CertEditor emiteP={emiteP} emiteC={emiteC} signers={signers} onEmite={setEmite} onAddSigner={addSigner} onDelSigner={delSigner} />
+      ) : (
+        <InscripcionMasivaTab courseId={courseId} />
       )}
     </div>
   );
@@ -584,6 +587,98 @@ function CapacitadorPicker({
             </button>
             <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setCreando(false)}>Cancelar</button>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------- inscripción masiva: pegar lista, crea cuenta si falta + inscribe ----------
+type ResultadoMasivo = { email: string; estado: string; detalle?: string };
+
+function InscripcionMasivaTab({ courseId }: { courseId: string }) {
+  const [lista, setLista] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [resultados, setResultados] = useState<ResultadoMasivo[] | null>(null);
+  const [invalidas, setInvalidas] = useState<string[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function enviar() {
+    setEnviando(true); setErr(null); setResultados(null); setInvalidas([]);
+    try {
+      const res = await fetch("/api/panel/inscripcion-masiva", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, lista }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setErr(data.error ?? "No se pudo procesar la lista"); return; }
+      setResultados(data.resultados ?? []);
+      setInvalidas(data.invalidas ?? []);
+    } catch {
+      setErr("No se pudo conectar con el servidor");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  const etiqueta: Record<string, string> = {
+    creado_e_inscripto: "Cuenta creada e inscripto",
+    inscripto: "Inscripto",
+    ya_inscripto: "Ya estaba inscripto",
+    error: "Error",
+  };
+  const colorEstado: Record<string, string> = {
+    creado_e_inscripto: "var(--verify)", inscripto: "var(--verify)",
+    ya_inscripto: "var(--muted)", error: "var(--danger)",
+  };
+
+  return (
+    <div>
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <label className="ed-lab">Inscripción masiva</label>
+        <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 0, marginBottom: 10 }}>
+          Un alumno por línea: <code>email</code> o <code>email, Nombre Apellido</code>. Si el email no
+          tiene cuenta en la academia, se crea automáticamente (con acceso vía &quot;Olvidé mi contraseña&quot;
+          la primera vez). Pensado para inscripciones acordadas por fuera de la plataforma (convenio,
+          transferencia, etc.) — no requiere pago en el sitio.
+        </p>
+        <textarea
+          className="ed-inp"
+          rows={7}
+          style={{ fontFamily: "monospace", fontSize: 13 }}
+          placeholder={"maria.gonzalez@banco.com, María González\njuan.perez@banco.com, Juan Pérez\nlucia.fernandez@banco.com"}
+          value={lista}
+          onChange={(e) => setLista(e.target.value)}
+        />
+        {err && <div className="msg err" style={{ marginTop: 4 }}>{err}</div>}
+        <button className="btn accent" style={{ marginTop: 10 }} onClick={enviar} disabled={enviando || !lista.trim()}>
+          {enviando ? "Procesando…" : "Inscribir lista"}
+        </button>
+      </div>
+
+      {invalidas.length > 0 && (
+        <div className="msg err" style={{ marginBottom: 16 }}>
+          {invalidas.length} línea(s) sin un email válido, se omitieron: {invalidas.join(" · ")}
+        </div>
+      )}
+
+      {resultados && (
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          {resultados.map((r, i) => (
+            <div
+              key={r.email}
+              style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "11px 16px", borderTop: i ? "1px solid var(--line)" : "none", fontSize: 13,
+              }}
+            >
+              <span>{r.email}</span>
+              <span style={{ color: colorEstado[r.estado], fontWeight: 600, fontSize: 12.5 }}>
+                {etiqueta[r.estado] ?? r.estado}{r.detalle ? ` — ${r.detalle}` : ""}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>
