@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/auth";
 import BrandingEditor from "@/components/panel/BrandingEditor";
+import CategoriasManager from "@/components/panel/CategoriasManager";
 
 export const metadata = { title: "Institucional" };
 
@@ -15,6 +16,12 @@ export default async function InstitucionalPage() {
     .select("nombre_academia, color_primario, logo_url, powered_by")
     .eq("tenant_id", user.tenantId)
     .single();
+
+  const { data: categorias } = await supabase
+    .from("categorias")
+    .select("id, nombre")
+    .eq("tenant_id", user.tenantId)
+    .order("nombre");
 
   return (
     <>
@@ -33,6 +40,9 @@ export default async function InstitucionalPage() {
           powered_by: b?.powered_by ?? true,
         }}
       />
+      <div style={{ marginTop: 20 }}>
+        <CategoriasManager tenantId={user.tenantId!} initial={categorias ?? []} />
+      </div>
     </>
   );
 }

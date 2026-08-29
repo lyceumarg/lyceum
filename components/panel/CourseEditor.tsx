@@ -20,6 +20,7 @@ export type EditorData = {
   preguntas: Question[];
   signers: Signer[];
   instructores: Instructor[];
+  categorias: { id: string; nombre: string }[];
 };
 type Signer = { id: string; nombre: string; cargo: string | null; firma_url: string | null; orden: number };
 export type Instructor = { id: string; nombre: string; headline: string | null; bio: string | null; foto_url: string | null; linkedin_url: string | null };
@@ -101,10 +102,11 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   }
 
   // ---------- curso ----------
-  async function guardarCurso() {
+  async function guardarCurso(override?: Partial<typeof course>) {
+    const c = { ...course, ...override };
     const { error } = await supabase.from("courses").update({
-      titulo: course.titulo, descripcion: course.descripcion,
-      categoria: course.categoria, precio: course.precio,
+      titulo: c.titulo, descripcion: c.descripcion,
+      categoria: c.categoria, precio: c.precio,
     }).eq("id", courseId);
     if (error) return fail(error);
     setErr(null);
@@ -218,13 +220,19 @@ export default function CourseEditor({ data }: { data: EditorData }) {
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12 }}>
           <div><label className="ed-lab">Título</label>
             <input className="ed-inp" value={course.titulo}
-              onChange={(e) => setCourse({ ...course, titulo: e.target.value })} onBlur={guardarCurso} /></div>
+              onChange={(e) => setCourse({ ...course, titulo: e.target.value })} onBlur={() => guardarCurso()} /></div>
           <div><label className="ed-lab">Categoría</label>
-            <input className="ed-inp" value={course.categoria ?? ""}
-              onChange={(e) => setCourse({ ...course, categoria: e.target.value })} onBlur={guardarCurso} /></div>
+            <select className="ed-inp" value={course.categoria ?? ""}
+              onChange={(e) => { const v = e.target.value || null; setCourse({ ...course, categoria: v }); guardarCurso({ categoria: v }); }}>
+              <option value="">Sin categoría</option>
+              {course.categoria && !data.categorias.some((c) => c.nombre === course.categoria) && (
+                <option value={course.categoria}>{course.categoria} (no está en la lista)</option>
+              )}
+              {data.categorias.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+            </select></div>
           <div><label className="ed-lab">Precio (ARS)</label>
             <input className="ed-inp" type="number" value={course.precio}
-              onChange={(e) => setCourse({ ...course, precio: Number(e.target.value) })} onBlur={guardarCurso} /></div>
+              onChange={(e) => setCourse({ ...course, precio: Number(e.target.value) })} onBlur={() => guardarCurso()} /></div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <span className={`st ${course.estado === "publicado" ? "pub" : "draft"}`}>
@@ -641,7 +649,8 @@ function InscripcionMasivaTab({ courseId }: { courseId: string }) {
           Un alumno por línea: <code>email</code> o <code>email, Nombre Apellido</code>. Si el email no
           tiene cuenta en la academia, se crea automáticamente (con acceso vía &quot;Olvidé mi contraseña&quot;
           la primera vez). Pensado para inscripciones acordadas por fuera de la plataforma (convenio,
-          transferencia, etc.) — no requiere pago en el sitio.
+          transferencia, etc.) — no requiere pago en el sitio. La cuenta queda libre para inscribirse
+          por su cuenta en cualquier otro curso.
         </p>
         <textarea
           className="ed-inp"

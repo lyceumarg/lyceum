@@ -61,6 +61,12 @@ export default async function EditorPage({ params }: { params: { id: string } })
     .eq("tenant_id", user.tenantId)
     .order("created_at", { ascending: false });
 
+  const { data: categorias } = await supabase
+    .from("categorias")
+    .select("id, nombre")
+    .eq("tenant_id", user.tenantId)
+    .order("nombre");
+
   const data: EditorData = {
     course,
     tenantId: user.tenantId!,
@@ -68,6 +74,7 @@ export default async function EditorPage({ params }: { params: { id: string } })
     examCfg: cfg ?? { cant_preguntas: 10, nota_corte: 70, max_intentos: 3 },
     signers: (signers ?? []) as any,
     instructores: (instructores ?? []) as any,
+    categorias: (categorias ?? []) as any,
     preguntas: (preguntas ?? []).map((q: any) => ({
       id: q.id,
       enunciado: q.enunciado,

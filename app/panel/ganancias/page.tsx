@@ -3,12 +3,12 @@ import ExportCsvButton from "@/components/panel/ExportCsvButton";
 
 export const metadata = { title: "Ganancias" };
 
-type OrderRow = {
+type EnrollRow = {
   id: string;
-  monto: number;
+  origen: string;
   estado: string;
-  created_at: string;
-  courses: { titulo: string } | null;
+  fecha_inscripcion: string;
+  courses: { titulo: string; precio: number } | null;
 };
 
 const money = (n: number) => `$${new Intl.NumberFormat("es-AR").format(Math.round(n))}`;
@@ -16,47 +16,50 @@ const money = (n: number) => `$${new Intl.NumberFormat("es-AR").format(Math.roun
 export default async function GananciasPage() {
   const supabase = createClient();
 
-  // RLS: tenant_admin ve todas las órdenes de su tenant.
+  // RLS: tenant_admin ve todas las inscripciones de su tenant.
+  // El ingreso se calcula por CADA inscripción activa (precio del curso al
+  // momento de consultar), sin importar si se pagó por Mercado Pago o por
+  // fuera de la plataforma (convenio, transferencia, inscripción masiva).
   const { data } = await supabase
-    .from("orders")
-    .select("id, monto, estado, created_at, courses(titulo)")
-    .order("created_at", { ascending: false })
-    .limit(500);
+    .from("enrollments")
+    .select("id, origen, estado, fecha_inscripcion, courses(titulo, precio)")
+    .order("fecha_inscripcion", { ascending: false })
+    .limit(1000);
 
-  const orders = (data ?? []) as unknown as OrderRow[];
-  const aprobadas = orders.filter((o) => o.estado === "aprobado");
-  const pendientes = orders.filter((o) => o.estado === "pendiente");
+  const todas = (data ?? []) as unknown as EnrollRow[];
+  const validas = todas.filter((e) => e.estado !== "cancelada");
 
-  const totalIngresos = aprobadas.reduce((s, o) => s + Number(o.monto), 0);
-  const ticketProm = aprobadas.length ? totalIngresos / aprobadas.length : 0;
+  const totalIngresos = validas.reduce((s, e) => s + Number(e.courses?.precio ?? 0), 0);
+  const ticketProm = validas.length ? totalIngresos / validas.length : 0;
+  const viaMP = validas.filter((e) => e.origen === "compra").length;
+  const porFuera = validas.length - viaMP;
 
-  // Últimos 6 meses, ingresos aprobados por mes.
   const meses: { label: string; key: string; total: number }[] = [];
   const now = new Date();
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     meses.push({ label: d.toLocaleDateString("es-AR", { month: "short" }), key: `${d.getFullYear()}-${d.getMonth()}`, total: 0 });
   }
-  for (const o of aprobadas) {
-    const d = new Date(o.created_at);
+  for (const e of validas) {
+    const d = new Date(e.fecha_inscripcion);
     const key = `${d.getFullYear()}-${d.getMonth()}`;
     const m = meses.find((x) => x.key === key);
-    if (m) m.total += Number(o.monto);
+    if (m) m.total += Number(e.courses?.precio ?? 0);
   }
   const maxMes = Math.max(1, ...meses.map((m) => m.total));
 
-  const estadoLabel: Record<string, string> = {
-    aprobado: "Aprobado", pendiente: "Pendiente", rechazado: "Rechazado", reembolsado: "Reembolsado",
+  const origenLabel: Record<string, string> = {
+    compra: "Mercado Pago", manual: "Manual", masivo: "Alta masiva", cupo: "Cupo",
   };
-  const estadoClase: Record<string, string> = {
-    aprobado: "valid", pendiente: "warn", rechazado: "danger", reembolsado: "muted",
+  const origenClase: Record<string, string> = {
+    compra: "valid", manual: "muted", masivo: "t", cupo: "warn",
   };
 
-  const csvRows = orders.map((o) => ({
-    fecha: new Date(o.created_at).toLocaleDateString("es-AR"),
-    curso: o.courses?.titulo ?? "—",
-    estado: estadoLabel[o.estado] ?? o.estado,
-    monto: Number(o.monto),
+  const csvRows = validas.map((e) => ({
+    fecha: new Date(e.fecha_inscripcion).toLocaleDateString("es-AR"),
+    curso: e.courses?.titulo ?? "—",
+    origen: origenLabel[e.origen] ?? e.origen,
+    monto: Number(e.courses?.precio ?? 0),
   }));
 
   return (
@@ -68,21 +71,25 @@ export default async function GananciasPage() {
         </div>
         <ExportCsvButton
           rows={csvRows}
-          filename="ordenes"
+          filename="inscripciones"
           columns={[
             { key: "fecha", label: "Fecha" },
             { key: "curso", label: "Curso" },
-            { key: "estado", label: "Estado" },
+            { key: "origen", label: "Origen" },
             { key: "monto", label: "Monto (ARS)" },
           ]}
         />
       </div>
 
+      <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: -14, marginBottom: 20 }}>
+        Incluye toda inscripción activa: pagada con Mercado Pago o acordada por fuera de la plataforma (convenio, transferencia, alta masiva).
+      </p>
+
       <div className="kpis">
-        <div className="card kpi"><div className="n">{money(totalIngresos)}</div><div className="l">Ingresos aprobados</div></div>
-        <div className="card kpi"><div className="n">{aprobadas.length}</div><div className="l">Ventas aprobadas</div></div>
+        <div className="card kpi"><div className="n">{money(totalIngresos)}</div><div className="l">Ingresos totales</div></div>
+        <div className="card kpi"><div className="n">{validas.length}</div><div className="l">Inscripciones</div></div>
         <div className="card kpi"><div className="n">{money(ticketProm)}</div><div className="l">Ticket promedio</div></div>
-        <div className="card kpi"><div className="n">{pendientes.length}</div><div className="l">Pagos pendientes</div></div>
+        <div className="card kpi"><div className="n">{viaMP}</div><div className="l">Vía Mercado Pago ({porFuera} por fuera)</div></div>
       </div>
 
       <div className="card" style={{ padding: 22, marginBottom: 22 }}>
@@ -98,29 +105,29 @@ export default async function GananciasPage() {
         </div>
         {totalIngresos === 0 && (
           <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 14 }}>
-            Todavía no hay ventas aprobadas. Este panel se completa solo cuando esté activo el cobro con Mercado Pago.
+            Todavía no hay inscripciones. Este panel se completa apenas se registre la primera.
           </p>
         )}
       </div>
 
-      <h3 style={{ fontSize: 18, marginBottom: 12 }}>Órdenes recientes</h3>
-      {orders.length ? (
+      <h3 style={{ fontSize: 18, marginBottom: 12 }}>Inscripciones recientes</h3>
+      {validas.length ? (
         <table className="tbl">
-          <thead><tr><th>Fecha</th><th>Curso</th><th>Estado</th><th>Monto</th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Curso</th><th>Origen</th><th>Monto</th></tr></thead>
           <tbody>
-            {orders.slice(0, 100).map((o) => (
-              <tr key={o.id}>
-                <td>{new Date(o.created_at).toLocaleDateString("es-AR")}</td>
-                <td style={{ fontWeight: 600 }}>{o.courses?.titulo ?? "—"}</td>
-                <td><span className={`pill ${estadoClase[o.estado] ?? ""}`}>{estadoLabel[o.estado] ?? o.estado}</span></td>
-                <td className="mono">{money(Number(o.monto))}</td>
+            {validas.slice(0, 100).map((e) => (
+              <tr key={e.id}>
+                <td>{new Date(e.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
+                <td style={{ fontWeight: 600 }}>{e.courses?.titulo ?? "—"}</td>
+                <td><span className={`pill ${origenClase[e.origen] ?? ""}`}>{origenLabel[e.origen] ?? e.origen}</span></td>
+                <td className="mono">{money(Number(e.courses?.precio ?? 0))}</td>
               </tr>
             ))}
           </tbody>
         </table>
       ) : (
         <div className="card empty">
-          Todavía no hay órdenes. Van a aparecer acá apenas se registre la primera venta.
+          Todavía no hay inscripciones. Van a aparecer acá apenas se registre la primera.
         </div>
       )}
     </>

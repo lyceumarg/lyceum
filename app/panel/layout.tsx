@@ -36,6 +36,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </div>
 
         <SideLink href="/panel" active={path === "/panel" || path.startsWith("/panel/cursos")}>📚 Cursos</SideLink>
+        <SideLink href="/panel/capacitadores" active={path.startsWith("/panel/capacitadores")}>🎓 Capacitadores</SideLink>
         <SideLink href="/panel/participantes" active={path.startsWith("/panel/participantes")}>👥 Participantes</SideLink>
         <SideLink href="/panel/ganancias" active={path.startsWith("/panel/ganancias")}>💵 Ganancias</SideLink>
         <SideLink href="/panel/institucional" active={path.startsWith("/panel/institucional")}>🏷 Institucional</SideLink>

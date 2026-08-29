@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourseDetail } from "@/lib/queries";
+import { createClient } from "@/lib/supabase/server";
 import EnrollButton from "./EnrollButton";
 import LyceumMark from "@/components/LyceumMark";
 
@@ -26,6 +27,23 @@ type Detail = {
 export default async function CursoPage({ params }: { params: { id: string } }) {
   const detail = (await getCourseDetail(params.id)) as Detail | null;
   if (!detail) notFound();
+
+  // ¿El usuario actual ya está inscripto en ESTE curso puntual? Si es así, no
+  // tiene sentido ofrecerle "Inscribirme" de nuevo — lo mandamos a cursar.
+  // Esto es independiente de cómo se haya dado de alta la cuenta: la
+  // restricción es por curso, no una regla general sobre el tipo de cuenta.
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let yaInscripto = false;
+  if (user) {
+    const { data: enroll } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("course_id", params.id)
+      .maybeSingle();
+    yaInscripto = !!enroll;
+  }
 
   return (
     <div className="wrap">
@@ -86,8 +104,17 @@ export default async function CursoPage({ params }: { params: { id: string } }) 
             <li>Acceso ilimitado al contenido</li>
           </ul>
           {/* La inscripción real dispara checkout Mercado Pago (Fase 2). */}
-          <EnrollButton courseId={detail.id} />
-          <p className="fineprint">Pago protegido con Mercado Pago</p>
+          {yaInscripto ? (
+            <>
+              <Link href={`/curso/${detail.id}/cursar`} className="btn accent block">Ya estás inscripto · Ir a cursar</Link>
+              <p className="fineprint">Tu acceso ya está activo</p>
+            </>
+          ) : (
+            <>
+              <EnrollButton courseId={detail.id} />
+              <p className="fineprint">Pago protegido con Mercado Pago</p>
+            </>
+          )}
         </aside>
       </div>
     </div>

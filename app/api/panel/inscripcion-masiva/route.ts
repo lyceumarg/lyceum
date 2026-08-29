@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
           password,
           email_confirm: true,
           user_metadata: { nombre },
-          app_metadata: { tenant_id: user.tenantId, rol: "participante" },
+          app_metadata: { tenant_id: user.tenantId, rol: "participante", alta_por_staff: true },
         });
         if (errCrear || !nuevo.user) {
           resultados.push({
