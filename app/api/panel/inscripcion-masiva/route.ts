@@ -103,6 +103,12 @@ export async function POST(request: NextRequest) {
         }
         userId = nuevo.user.id;
         creado = true;
+        // Igual que en el registro: Supabase escribe app_metadata en un paso
+        // posterior al alta, así que el trigger puede leerlo vacío. Se fija
+        // acá de forma explícita para no depender de ese orden.
+        await admin.from("profiles")
+          .update({ tenant_id: user.tenantId, rol: "participante", alta_por_staff: true })
+          .eq("id", userId);
       }
 
       // ¿Ya está inscripto en este curso?

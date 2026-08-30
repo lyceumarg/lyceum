@@ -32,6 +32,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  // El trigger on_auth_user_created crea el profile con tenant_id y rol.
+  // El trigger on_auth_user_created ya crea el profile, pero Supabase escribe
+  // app_metadata en un paso POSTERIOR al alta del usuario — el trigger puede
+  // dispararse antes de que ese dato exista y dejar tenant_id/rol vacíos.
+  // Por eso se fija acá también, de forma explícita, con el service_role.
+  if (data.user) {
+    await admin.from("profiles").update({ tenant_id: tenant.tenant_id, rol: "participante" }).eq("id", data.user.id);
+  }
+
   return NextResponse.json({ ok: true, userId: data.user?.id });
 }
