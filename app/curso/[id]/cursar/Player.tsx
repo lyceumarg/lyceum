@@ -49,6 +49,9 @@ export default function Player({
         <div>
           {categoria && <span className="eyebrow">{categoria}</span>}
           <h2 style={{ fontSize: 24 }}>{titulo}</h2>
+          <a href={`/curso/${courseId}/material`} target="_blank" rel="noopener" style={{ fontSize: 12.5, color: "var(--accent)", fontWeight: 600, display: "inline-block", marginTop: 6 }}>
+            ↓ Descargar material completo (PDF)
+          </a>
         </div>
         <div style={{ textAlign: "right", minWidth: 180 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: "var(--muted)" }}>
