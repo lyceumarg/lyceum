@@ -14,7 +14,7 @@ export default function SitioA() {
           <div style={{ display: "flex", alignItems: "center", gap: 26, marginLeft: "auto" }}>
             <a href="#como-funciona">Cómo funciona</a>
             <a href="/login">Ingresar</a>
-            <a href="mailto:hola@lyceum.com" className="btn sm" style={ctaStyle}>
+            <a href="mailto:hola@lyceum.com.ar" className="btn sm" style={ctaStyle}>
               Pedir demo
             </a>
           </div>
@@ -31,7 +31,7 @@ export default function SitioA() {
               contenido; la confianza viene incluida.
             </p>
             <div className="hero-cta">
-              <a href="mailto:hola@lyceum.com" className="btn" style={{ background: "var(--indigo)" }}>
+              <a href="mailto:hola@lyceum.com.ar" className="btn" style={{ background: "var(--indigo)" }}>
                 Crear mi academia →
               </a>
               <a href="#como-funciona" className="btn ghost">

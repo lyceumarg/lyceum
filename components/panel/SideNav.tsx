@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import LyceumMark from "@/components/LyceumMark";
 
 type LinkDef = { href: string; label: string; match: (path: string) => boolean };
 
@@ -12,19 +14,45 @@ const LINKS: LinkDef[] = [
   { href: "/panel/institucional", label: "🏷 Institucional", match: (p) => p.startsWith("/panel/institucional") },
 ];
 
-// Client Component a propósito: usePathname() se actualiza en cada
-// navegación. El layout del panel es un Server Component que NO se vuelve
-// a ejecutar entre páginas hermanas, así que calcular ahí "cuál está activa"
-// queda pegado en la sección anterior hasta un refresh completo.
-export default function SideNav() {
+// Client Component: en desktop es la barra lateral fija de siempre; en
+// mobile se convierte en una franja superior compacta con un botón que
+// despliega el mismo menú (sin motion, coherente con el resto del panel).
+export default function SideNav({
+  nombre, logoUrl, iniciales,
+}: { nombre: string; logoUrl: string | null; iniciales: string }) {
   const pathname = usePathname() || "/panel";
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+
   return (
-    <>
-      {LINKS.map((l) => (
-        <Link key={l.href} href={l.href} className={`side-link${l.match(pathname) ? " on" : ""}`}>
-          {l.label}
-        </Link>
-      ))}
-    </>
+    <div className="sidenav">
+      <div className="sidenav-top">
+        <div className="logo">
+          {logoUrl ? (
+            <img src={logoUrl} alt="" style={{ width: 26, height: 26, borderRadius: 7, objectFit: "contain" }} />
+          ) : (
+            <span className="m">{iniciales}</span>
+          )}
+          {nombre}
+        </div>
+        <button className="panel-burger" onClick={() => setOpen((v) => !v)} aria-label="Menú" aria-expanded={open}>
+          <span /><span /><span />
+        </button>
+      </div>
+
+      <div className={`sidenav-links${open ? " open" : ""}`}>
+        {LINKS.map((l) => (
+          <Link key={l.href} href={l.href} className={`side-link${l.match(pathname) ? " on" : ""}`} onClick={close}>
+            {l.label}
+          </Link>
+        ))}
+        <div className="side-sep" />
+        <Link href="/" className="side-link" onClick={close}>↩ Ver mi academia</Link>
+        <div className="side-foot">
+          <LyceumMark size={12} />
+          Powered by Lyceum
+        </div>
+      </div>
+    </div>
   );
 }

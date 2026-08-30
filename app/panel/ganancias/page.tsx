@@ -112,6 +112,7 @@ export default async function GananciasPage() {
 
       <h3 style={{ fontSize: 18, marginBottom: 12 }}>Inscripciones recientes</h3>
       {validas.length ? (
+        <div className="tbl-scroll">
         <table className="tbl">
           <thead><tr><th>Fecha</th><th>Curso</th><th>Origen</th><th>Monto</th></tr></thead>
           <tbody>
@@ -125,6 +126,7 @@ export default async function GananciasPage() {
             ))}
           </tbody>
         </table>
+        </div>
       ) : (
         <div className="card empty">
           Todavía no hay inscripciones. Van a aparecer acá apenas se registre la primera.

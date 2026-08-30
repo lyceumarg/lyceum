@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUserContext, isStaff } from "@/lib/auth";
 import { getTenantByHost } from "@/lib/tenant";
-import LyceumMark from "@/components/LyceumMark";
 import SideNav from "@/components/panel/SideNav";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
@@ -16,26 +14,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
 
   return (
     <div className="admin">
-      <div className="sidenav">
-        <div className="logo">
-          {tenant?.logo_url ? (
-            <img src={tenant.logo_url} alt="" style={{ width: 26, height: 26, borderRadius: 7, objectFit: "contain" }} />
-          ) : (
-            <span className="m">{iniciales}</span>
-          )}
-          {nombre}
-        </div>
-
-        <SideNav />
-
-        <div className="side-sep" />
-        <Link href="/" className="side-link">↩ Ver mi academia</Link>
-
-        <div className="side-foot">
-          <LyceumMark size={12} />
-          Powered by Lyceum
-        </div>
-      </div>
+      <SideNav nombre={nombre} logoUrl={tenant?.logo_url ?? null} iniciales={iniciales} />
       <div className="main">{children}</div>
     </div>
   );

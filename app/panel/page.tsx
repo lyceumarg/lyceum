@@ -33,6 +33,7 @@ export default async function PanelHome() {
       </div>
 
       {courses && courses.length ? (
+        <div className="tbl-scroll">
         <table className="tbl">
           <thead>
             <tr><th>Curso</th><th>Categoría</th><th>Estado</th><th>Precio</th></tr>
@@ -50,6 +51,7 @@ export default async function PanelHome() {
             ))}
           </tbody>
         </table>
+        </div>
       ) : (
         <div className="card empty">Todavía no cargaste cursos. Creá el primero.</div>
       )}

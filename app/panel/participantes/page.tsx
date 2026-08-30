@@ -44,6 +44,7 @@ export default async function ParticipantesPage() {
       </div>
 
       {rows && rows.length ? (
+        <div className="tbl-scroll">
         <table className="tbl">
           <thead>
             <tr><th>Alumno</th><th>Curso</th><th>Estado</th><th>Origen</th><th>Inscripción</th></tr>
@@ -60,6 +61,7 @@ export default async function ParticipantesPage() {
             ))}
           </tbody>
         </table>
+        </div>
       ) : (
         <div className="card empty">Todavía no hay participantes inscriptos.</div>
       )}
