@@ -1,0 +1,12 @@
+Pegar esta lista en Panel → [cada curso demo] → pestaña "Inscripción masiva",
+UNA VEZ POR CADA UNO de los 2 cursos demo (así quedan inscriptos en ambos).
+
+Usé el dominio @demo-abe.com a propósito: es fácil de identificar y borrar
+después (ver demo-4-borrar.sql), y no son direcciones reales.
+
+juan.perez@demo-abe.com, Juan Pérez
+lucia.fernandez@demo-abe.com, Lucía Fernández
+martin.alonso@demo-abe.com, Martín Alonso
+carla.gimenez@demo-abe.com, Carla Giménez
+ricardo.suarez@demo-abe.com, Ricardo Suárez
+valentina.rios@demo-abe.com, Valentina Ríos

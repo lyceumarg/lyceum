@@ -64,19 +64,30 @@ export async function POST(request: NextRequest) {
 
   for (const { email, nombre } of validas) {
     try {
-      // ¿Ya existe una cuenta con este email EN ESTE tenant?
-      const { data: existente } = await admin
+      // ¿Existe ya una cuenta con este email? Se busca SIN filtrar por tenant
+      // primero, para poder distinguir "ya es de esta academia" (la
+      // reutilizamos) de "es de OTRA academia" (no se puede crear de nuevo) —
+      // sin depender de interpretar el texto del error de Supabase.
+      const { data: existentes, error: errBusqueda } = await admin
         .from("profiles")
-        .select("id")
-        .eq("tenant_id", user.tenantId)
-        .eq("email", email)
-        .maybeSingle();
+        .select("id, tenant_id")
+        .eq("email", email);
+      if (errBusqueda) {
+        resultados.push({ email, estado: "error", detalle: "No se pudo verificar el email: " + errBusqueda.message });
+        continue;
+      }
+
+      const enEsteTenant = (existentes ?? []).find((p) => p.tenant_id === user.tenantId);
+      const enOtroTenant = (existentes ?? []).find((p) => p.tenant_id !== user.tenantId);
 
       let userId: string;
       let creado = false;
 
-      if (existente) {
-        userId = existente.id;
+      if (enEsteTenant) {
+        userId = enEsteTenant.id;
+      } else if (enOtroTenant) {
+        resultados.push({ email, estado: "error", detalle: "Ese email ya tiene cuenta en otra academia de Lyceum" });
+        continue;
       } else {
         const password = randomUUID();
         const { data: nuevo, error: errCrear } = await admin.auth.admin.createUser({
@@ -87,12 +98,7 @@ export async function POST(request: NextRequest) {
           app_metadata: { tenant_id: user.tenantId, rol: "participante", alta_por_staff: true },
         });
         if (errCrear || !nuevo.user) {
-          resultados.push({
-            email, estado: "error",
-            detalle: /already.*registered|email_exists/i.test(errCrear?.message ?? "")
-              ? "Ese email ya tiene cuenta en otra academia de Lyceum"
-              : (errCrear?.message ?? "No se pudo crear la cuenta"),
-          });
+          resultados.push({ email, estado: "error", detalle: errCrear?.message ?? "No se pudo crear la cuenta" });
           continue;
         }
         userId = nuevo.user.id;
