@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import BlockView, { type Block } from "@/components/BlockView";
@@ -37,7 +38,9 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   const { tenantId } = data;
   const courseId = data.course.id;
 
-  const [tab, setTab] = useState<"c" | "e" | "cert" | "masiva">("c");
+  const searchParams = useSearchParams();
+  const tabInicial = searchParams.get("tab") === "masiva" ? "masiva" : "c";
+  const [tab, setTab] = useState<"c" | "e" | "cert" | "masiva">(tabInicial);
   const [course, setCourse] = useState(data.course);
   const [mods, setMods] = useState<Module[]>(data.modulos);
   const [sel, setSel] = useState<{ m: number; l: number } | null>(

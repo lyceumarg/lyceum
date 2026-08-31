@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { currentHost } from "@/lib/tenant";
 import { sendMail } from "@/lib/email";
 import { solicitudInscripcionHtml } from "@/lib/emails/solicitud-inscripcion";
 
@@ -34,11 +35,12 @@ export async function solicitarInscripcion(courseId: string): Promise<{ ok: bool
   const alumnoNombre = perfil?.nombre || "Sin nombre cargado";
   const alumnoEmail = perfil?.email || user.email || "—";
   const cursoTitulo = curso?.titulo ?? "Curso";
+  const panelUrl = `https://${currentHost()}/panel/cursos/${courseId}?tab=masiva`;
 
   const res = await sendMail({
     to: destinatarios,
     subject: `Nueva solicitud de inscripción — ${cursoTitulo}`,
-    html: solicitudInscripcionHtml({ alumnoNombre, alumnoEmail, curso: cursoTitulo, academia }),
+    html: solicitudInscripcionHtml({ alumnoNombre, alumnoEmail, curso: cursoTitulo, academia, panelUrl }),
   });
 
   return res.ok ? { ok: true } : { ok: false, error: res.error };
