@@ -54,6 +54,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   const [instructores, setInstructores] = useState<Instructor[]>(data.instructores);
   const [capacitadorId, setCapacitadorId] = useState<string | null>(data.course.capacitador_id);
   const [editingBlock, setEditingBlock] = useState<number | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [draftHtml, setDraftHtml] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
@@ -302,51 +303,66 @@ export default function CourseEditor({ data }: { data: EditorData }) {
             <button className="btn ghost" style={{ width: "100%", marginTop: 6, padding: "8px", fontSize: 13 }} onClick={addModule}>+ Módulo</button>
           </div>
 
-          {/* editor de bloques + preview */}
-          <div className="ed-main" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, alignItems: "start" }}>
-            <div className="card" style={{ padding: 20 }}>
-              {lesson ? (
-                <>
-                  <div style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 12 }}>
+          {/* editor de bloques (ancho completo — la vista previa es emergente, no una columna fija) */}
+          <div className="card" style={{ padding: 20 }}>
+            {lesson ? (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ fontSize: 12.5, color: "var(--muted)" }}>
                     Editando: <strong style={{ color: "var(--ink)" }}>{lesson.titulo}</strong>
                   </div>
-                  <h3 style={{ fontSize: 16, marginBottom: 12 }}>Bloques</h3>
-                  {lesson.blocks.length ? lesson.blocks.map((b, bi) => (
-                    editingBlock === bi ? (
-                      <div key={b.id} style={{ marginBottom: 10 }}>
-                        <div className="ed-lab">Editando bloque de texto</div>
-                        <RichTextEditor value={draftHtml} onChange={setDraftHtml} />
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }}
-                            onClick={() => { updateBlock(bi, { html: draftHtml }); setEditingBlock(null); }}>
-                            Guardar
-                          </button>
-                          <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setEditingBlock(null)}>
-                            Cancelar
-                          </button>
-                        </div>
+                  <button className="btn ghost sm" onClick={() => setPreviewOpen(true)} disabled={!lesson.blocks.length}>
+                    👁 Vista previa
+                  </button>
+                </div>
+                <h3 style={{ fontSize: 16, marginBottom: 12 }}>Bloques</h3>
+                {lesson.blocks.length ? lesson.blocks.map((b, bi) => (
+                  editingBlock === bi ? (
+                    <div key={b.id} style={{ marginBottom: 10 }}>
+                      <div className="ed-lab">Editando bloque de texto</div>
+                      <RichTextEditor value={draftHtml} onChange={setDraftHtml} />
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }}
+                          onClick={() => { updateBlock(bi, { html: draftHtml }); setEditingBlock(null); }}>
+                          Guardar
+                        </button>
+                        <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setEditingBlock(null)}>
+                          Cancelar
+                        </button>
                       </div>
-                    ) : (
-                      <div className="blk-row" key={b.id}>
-                        <span className="blk-label" style={{ margin: 0 }}>{b.tipo}</span>
-                        <span className="t">{blockSummary(b)}</span>
-                        {b.tipo === "richtext" && (
-                          <button className="tx" title="Editar" onClick={() => { setEditingBlock(bi); setDraftHtml(b.contenido?.html || ""); }}>✎</button>
-                        )}
-                        <button className="tx" onClick={() => delBlock(bi)}>✕</button>
-                      </div>
-                    )
-                  )) : <p style={{ color: "var(--muted)", fontSize: 13 }}>Sin bloques todavía.</p>}
-                  <BlockAdder onAdd={addBlock} />
-                </>
-              ) : <p style={{ color: "var(--muted)", fontSize: 13 }}>Seleccioná o creá una lección.</p>}
-            </div>
-            <div className="card" style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 16, marginBottom: 4 }}>Vista previa</h3>
-              <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>Como lo verá el participante</p>
-              {lesson?.blocks.map((b) => <BlockView key={b.id} b={b} />)}
-            </div>
+                    </div>
+                  ) : (
+                    <div className="blk-row" key={b.id}>
+                      <span className="blk-label" style={{ margin: 0 }}>{b.tipo}</span>
+                      <span className="t">{blockSummary(b)}</span>
+                      {b.tipo === "richtext" && (
+                        <button className="tx" title="Editar" onClick={() => { setEditingBlock(bi); setDraftHtml(b.contenido?.html || ""); }}>✎</button>
+                      )}
+                      <button className="tx" onClick={() => delBlock(bi)}>✕</button>
+                    </div>
+                  )
+                )) : <p style={{ color: "var(--muted)", fontSize: 13 }}>Sin bloques todavía.</p>}
+                <BlockAdder onAdd={addBlock} />
+              </>
+            ) : <p style={{ color: "var(--muted)", fontSize: 13 }}>Seleccioná o creá una lección.</p>}
           </div>
+
+          {previewOpen && lesson && (
+            <div className="modal-backdrop" onClick={() => setPreviewOpen(false)}>
+              <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-head">
+                  <div>
+                    <h3 style={{ fontSize: 16 }}>Vista previa</h3>
+                    <p style={{ fontSize: 12, color: "var(--muted)" }}>Como lo verá el participante — {lesson.titulo}</p>
+                  </div>
+                  <button className="tx" onClick={() => setPreviewOpen(false)}>✕</button>
+                </div>
+                <div className="modal-body">
+                  {lesson.blocks.map((b) => <BlockView key={b.id} b={b} />)}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : tab === "e" ? (
         <ExamEditor cfg={cfg} qs={qs} onCfg={saveCfg} onAdd={addQuestion} onDel={delQuestion} />

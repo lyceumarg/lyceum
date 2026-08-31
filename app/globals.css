@@ -372,6 +372,12 @@ textarea.ed-inp{resize:vertical}
 .instr-mini{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fafafa;font-size:13px}
 .instr-mini .ph,.instr-mini img{width:30px;height:30px;border-radius:50%;background:var(--soft);color:var(--indigo);display:grid;place-items:center;font-weight:700;font-size:12px;object-fit:cover;flex:0 0 auto}
 
+/* modal genérico del panel (ej. vista previa) — sin animación, a propósito */
+.modal-backdrop{position:fixed;inset:0;background:rgba(21,23,30,.45);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+.modal-card{background:#fff;border-radius:14px;max-width:560px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 30px 60px -20px rgba(0,0,0,.35)}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.modal-body{padding:20px 22px;overflow-y:auto}
+
 .inst-grid{display:grid;grid-template-columns:1fr 300px;gap:20px}
 @media(max-width:820px){.inst-grid{grid-template-columns:1fr}}
 .preview-chip{padding:16px 18px;display:flex;align-items:center;gap:12px;border-radius:14px 14px 0 0}
