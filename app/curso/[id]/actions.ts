@@ -10,7 +10,7 @@ import { solicitudInscripcionHtml } from "@/lib/emails/solicitud-inscripcion";
 // por Mercado Pago (todavía no disponible) o pedirle a la academia que lo
 // inscriba por fuera de la plataforma. Este segundo camino no crea la
 // inscripción — solo avisa al staff, que la completa a mano desde
-// "Inscripción masiva" una vez coordinado el pago.
+// "Inscripción manual" una vez coordinado el pago.
 export async function solicitarInscripcion(courseId: string): Promise<{ ok: boolean; error?: string }> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -35,7 +35,7 @@ export async function solicitarInscripcion(courseId: string): Promise<{ ok: bool
   const alumnoNombre = perfil?.nombre || "Sin nombre cargado";
   const alumnoEmail = perfil?.email || user.email || "—";
   const cursoTitulo = curso?.titulo ?? "Curso";
-  const panelUrl = `https://${currentHost()}/panel/cursos/${courseId}?tab=masiva`;
+  const panelUrl = `https://${currentHost()}/panel/cursos/${courseId}?tab=manual`;
 
   const res = await sendMail({
     to: destinatarios,

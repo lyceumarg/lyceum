@@ -19,7 +19,7 @@ export default async function GananciasPage() {
   // RLS: tenant_admin ve todas las inscripciones de su tenant.
   // El ingreso se calcula por CADA inscripción activa (precio del curso al
   // momento de consultar), sin importar si se pagó por Mercado Pago o por
-  // fuera de la plataforma (convenio, transferencia, inscripción masiva).
+  // fuera de la plataforma (convenio, transferencia, inscripción manual).
   const { data } = await supabase
     .from("enrollments")
     .select("id, origen, estado, fecha_inscripcion, courses(titulo, precio)")
@@ -82,7 +82,7 @@ export default async function GananciasPage() {
       </div>
 
       <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: -14, marginBottom: 20 }}>
-        Incluye toda inscripción activa: pagada con Mercado Pago o acordada por fuera de la plataforma (convenio, transferencia, alta masiva).
+        Incluye toda inscripción activa: pagada con Mercado Pago o acordada por fuera de la plataforma (convenio, transferencia, inscripción manual).
       </p>
 
       <div className="kpis">

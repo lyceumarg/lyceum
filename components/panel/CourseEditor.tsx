@@ -39,8 +39,8 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   const courseId = data.course.id;
 
   const searchParams = useSearchParams();
-  const tabInicial = searchParams.get("tab") === "masiva" ? "masiva" : "c";
-  const [tab, setTab] = useState<"c" | "e" | "cert" | "masiva">(tabInicial);
+  const tabInicial = searchParams.get("tab") === "manual" ? "manual" : "c";
+  const [tab, setTab] = useState<"c" | "e" | "cert" | "manual">(tabInicial);
   const [course, setCourse] = useState(data.course);
   const [mods, setMods] = useState<Module[]>(data.modulos);
   const [sel, setSel] = useState<{ m: number; l: number } | null>(
@@ -273,7 +273,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
         <button className={`tab${tab === "c" ? " on" : ""}`} onClick={() => setTab("c")}>Contenido</button>
         <button className={`tab${tab === "e" ? " on" : ""}`} onClick={() => setTab("e")}>Examen de certificación</button>
         <button className={`tab${tab === "cert" ? " on" : ""}`} onClick={() => setTab("cert")}>Certificado</button>
-        <button className={`tab${tab === "masiva" ? " on" : ""}`} onClick={() => setTab("masiva")}>Inscripción masiva</button>
+        <button className={`tab${tab === "manual" ? " on" : ""}`} onClick={() => setTab("manual")}>Inscripción manual</button>
       </div>
 
       {tab === "c" ? (
@@ -353,7 +353,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
       ) : tab === "cert" ? (
         <CertEditor emiteP={emiteP} emiteC={emiteC} signers={signers} onEmite={setEmite} onAddSigner={addSigner} onDelSigner={delSigner} />
       ) : (
-        <InscripcionMasivaTab courseId={courseId} />
+        <InscripcionManualTab courseId={courseId} />
       )}
     </div>
   );
@@ -636,10 +636,10 @@ function CapacitadorPicker({
   );
 }
 
-// ---------- inscripción masiva: pegar lista, crea cuenta si falta + inscribe ----------
+// ---------- inscripción manual: pegar lista, crea cuenta si falta + inscribe ----------
 type ResultadoMasivo = { email: string; estado: string; detalle?: string };
 
-function InscripcionMasivaTab({ courseId }: { courseId: string }) {
+function InscripcionManualTab({ courseId }: { courseId: string }) {
   const [lista, setLista] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [resultados, setResultados] = useState<ResultadoMasivo[] | null>(null);
@@ -649,7 +649,7 @@ function InscripcionMasivaTab({ courseId }: { courseId: string }) {
   async function enviar() {
     setEnviando(true); setErr(null); setResultados(null); setInvalidas([]);
     try {
-      const res = await fetch("/api/panel/inscripcion-masiva", {
+      const res = await fetch("/api/panel/inscripcion-manual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseId, lista }),
@@ -679,7 +679,7 @@ function InscripcionMasivaTab({ courseId }: { courseId: string }) {
   return (
     <div>
       <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-        <label className="ed-lab">Inscripción masiva</label>
+        <label className="ed-lab">Inscripción manual</label>
         <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 0, marginBottom: 10 }}>
           Un alumno por línea: <code>email</code> o <code>email, Nombre Apellido</code>. Si el email no
           tiene cuenta en la academia, se crea automáticamente (con acceso vía &quot;Olvidé mi contraseña&quot;

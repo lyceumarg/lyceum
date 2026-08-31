@@ -34,7 +34,7 @@ export function solicitudInscripcionHtml({
           <p style="margin:0 0 24px;font-size:14.5px;line-height:1.6;color:#43465a;">
             Pidió inscribirse por fuera de Mercado Pago. Coordiná el pago como corresponda y, cuando esté listo,
             inscribilo con el botón de abajo — te lleva directo al curso, a la pestaña
-            <strong>"Inscripción masiva"</strong>. Solo pegá su email
+            <strong>"Inscripción manual"</strong>. Solo pegá su email
             (<span style="font-family:'Courier New',monospace">${alumnoEmail}</span>) y queda inscripto al instante.
           </p>
         </td></tr>
