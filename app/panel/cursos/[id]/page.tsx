@@ -11,17 +11,56 @@ export default async function EditorPage({ params }: { params: { id: string } })
   if (!user) redirect("/login");
   const supabase = createClient();
 
-  const { data: course } = await supabase
-    .from("courses")
-    .select("id, titulo, descripcion, categoria, precio, estado, emite_participacion, emite_certificacion, capacitador_id")
-    .eq("id", params.id)
-    .maybeSingle();
-  if (!course) notFound();
+  // Ninguna de estas 7 consultas depende del resultado de las demás — antes
+  // se pedían una atrás de la otra (await secuencial) y el tiempo de espera
+  // de cada una se sumaba. Disparándolas todas juntas, la carga total tarda
+  // lo que tarda la MÁS LENTA de las 7, no la suma de las 7.
+  const [
+    { data: course },
+    { data: mods },
+    { data: cfg },
+    { data: preguntas },
+    { data: signers },
+    { data: instructores },
+    { data: categorias },
+  ] = await Promise.all([
+    supabase
+      .from("courses")
+      .select("id, titulo, descripcion, categoria, precio, estado, emite_participacion, emite_certificacion, capacitador_id")
+      .eq("id", params.id)
+      .maybeSingle(),
+    supabase
+      .from("modules")
+      .select("id, titulo, orden, lessons(id, titulo, orden, content_blocks(id, tipo, orden, contenido, media_url))")
+      .eq("course_id", params.id),
+    supabase
+      .from("exam_config")
+      .select("cant_preguntas, nota_corte, max_intentos")
+      .eq("course_id", params.id)
+      .maybeSingle(),
+    supabase
+      .from("questions")
+      .select("id, enunciado, explicacion, question_options(id, texto, es_correcta)")
+      .eq("course_id", params.id),
+    supabase
+      .from("certificate_signers")
+      .select("id, nombre, cargo, firma_url, orden")
+      .eq("course_id", params.id)
+      .order("orden"),
+    // Instructores del tenant (para el selector) — reutilizables entre cursos.
+    supabase
+      .from("instructores")
+      .select("id, nombre, headline, bio, foto_url, linkedin_url")
+      .eq("tenant_id", user.tenantId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("categorias")
+      .select("id, nombre")
+      .eq("tenant_id", user.tenantId)
+      .order("nombre"),
+  ]);
 
-  const { data: mods } = await supabase
-    .from("modules")
-    .select("id, titulo, orden, lessons(id, titulo, orden, content_blocks(id, tipo, orden, contenido, media_url))")
-    .eq("course_id", params.id);
+  if (!course) notFound();
 
   const modulos = (mods ?? [])
     .sort((a, b) => a.orden - b.orden)
@@ -36,36 +75,6 @@ export default async function EditorPage({ params }: { params: { id: string } })
         blocks: [...(l.content_blocks ?? [])].sort((a, b) => a.orden - b.orden),
       })),
     }));
-
-  const { data: cfg } = await supabase
-    .from("exam_config")
-    .select("cant_preguntas, nota_corte, max_intentos")
-    .eq("course_id", params.id)
-    .maybeSingle();
-
-  const { data: preguntas } = await supabase
-    .from("questions")
-    .select("id, enunciado, explicacion, question_options(id, texto, es_correcta)")
-    .eq("course_id", params.id);
-
-  const { data: signers } = await supabase
-    .from("certificate_signers")
-    .select("id, nombre, cargo, firma_url, orden")
-    .eq("course_id", params.id)
-    .order("orden");
-
-  // Instructores del tenant (para el selector) — reutilizables entre cursos.
-  const { data: instructores } = await supabase
-    .from("instructores")
-    .select("id, nombre, headline, bio, foto_url, linkedin_url")
-    .eq("tenant_id", user.tenantId)
-    .order("created_at", { ascending: false });
-
-  const { data: categorias } = await supabase
-    .from("categorias")
-    .select("id, nombre")
-    .eq("tenant_id", user.tenantId)
-    .order("nombre");
 
   const data: EditorData = {
     course,
