@@ -31,7 +31,9 @@ export async function middleware(request: NextRequest) {
 
   const host = (request.headers.get("x-forwarded-host") || request.headers.get("host") || "").toLowerCase();
   const platformHost = (process.env.PLATFORM_HOST || "").toLowerCase();
-  const isPlatform = !!platformHost && host === platformHost;
+  // "www.x" y "x" cuentan como el mismo host de plataforma (ver lib/tenant.ts).
+  const stripWww = (h: string) => h.replace(/^www\./, "");
+  const isPlatform = !!platformHost && stripWww(host) === stripWww(platformHost);
   const path = request.nextUrl.pathname;
 
   const rol = (user?.app_metadata as { rol?: string } | undefined)?.rol ?? null;
