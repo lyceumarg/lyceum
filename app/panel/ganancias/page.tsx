@@ -49,7 +49,7 @@ export default async function GananciasPage() {
   const maxMes = Math.max(1, ...meses.map((m) => m.total));
 
   const origenLabel: Record<string, string> = {
-    compra: "Mercado Pago", manual: "Manual", masivo: "Alta masiva", cupo: "Cupo",
+    compra: "Mercado Pago", manual: "Online", masivo: "Manual", cupo: "Cupo",
   };
   const origenClase: Record<string, string> = {
     compra: "valid", manual: "muted", masivo: "t", cupo: "warn",

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCourseDetail } from "@/lib/queries";
 import { createClient } from "@/lib/supabase/server";
-import EnrollButton from "./EnrollButton";
+import EnrollChoice from "./EnrollChoice";
 import LyceumMark from "@/components/LyceumMark";
 
 type Capacitador = {
@@ -103,17 +103,16 @@ export default async function CursoPage({ params }: { params: { id: string } }) 
             <li>Certificado verificable con ID único</li>
             <li>Acceso ilimitado al contenido</li>
           </ul>
-          {/* La inscripción real dispara checkout Mercado Pago (Fase 2). */}
+          {/* La inscripción ya no es directa: se elige pagar por Mercado Pago
+              (todavía no disponible) o pedirle a la academia que la haga
+              a mano por fuera de la plataforma. */}
           {yaInscripto ? (
             <>
               <Link href={`/curso/${detail.id}/cursar`} className="btn accent block">Ya estás inscripto · Ir a cursar</Link>
               <p className="fineprint">Tu acceso ya está activo</p>
             </>
           ) : (
-            <>
-              <EnrollButton courseId={detail.id} />
-              <p className="fineprint">Pago protegido con Mercado Pago</p>
-            </>
+            <EnrollChoice courseId={detail.id} />
           )}
         </aside>
       </div>

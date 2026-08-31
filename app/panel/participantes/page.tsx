@@ -3,6 +3,10 @@ import ExportCsvButton from "@/components/panel/ExportCsvButton";
 
 export const metadata = { title: "Participantes" };
 
+const ORIGEN_LABEL: Record<string, string> = {
+  compra: "Mercado Pago", manual: "Online", masivo: "Manual", cupo: "Cupo",
+};
+
 export default async function ParticipantesPage() {
   const supabase = createClient();
 
@@ -20,7 +24,7 @@ export default async function ParticipantesPage() {
     alumno: r.profiles?.nombre ?? "—",
     curso: r.courses?.titulo ?? "—",
     estado: r.estado,
-    origen: r.origen,
+    origen: ORIGEN_LABEL[r.origen] ?? r.origen,
   }));
 
   return (
@@ -55,7 +59,7 @@ export default async function ParticipantesPage() {
                 <td style={{ fontWeight: 600 }}>{r.profiles?.nombre ?? "—"}</td>
                 <td>{r.courses?.titulo ?? "—"}</td>
                 <td>{r.estado}</td>
-                <td>{r.origen}</td>
+                <td>{ORIGEN_LABEL[r.origen] ?? r.origen}</td>
                 <td>{new Date(r.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
               </tr>
             ))}
