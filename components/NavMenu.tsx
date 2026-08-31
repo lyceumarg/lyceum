@@ -14,8 +14,8 @@ export default function NavMenu({ authed, rol }: { authed: boolean; rol: Rol | n
       <Link href="/" onClick={close}>Catálogo</Link>
       {authed && <Link href="/mis-cursos" onClick={close}>Mis cursos</Link>}
       {authed && <Link href="/perfil" onClick={close}>Mi perfil</Link>}
-      {staff && <Link href="/panel" onClick={close}>Panel</Link>}
       <Link href="/verificar" onClick={close}>Verificar</Link>
+      {staff && <Link href="/panel" onClick={close} className="nav-panel-link">Panel</Link>}
     </>
   );
 

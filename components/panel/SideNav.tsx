@@ -47,7 +47,7 @@ export default function SideNav({
           </Link>
         ))}
         <div className="side-sep" />
-        <Link href="/" className="side-link" onClick={close}>↩ Ver mi academia</Link>
+        <Link href="/" className="side-link" onClick={close}>↩ Volver al sitio</Link>
         <div className="side-foot">
           <LyceumMark size={12} />
           Powered by Lyceum

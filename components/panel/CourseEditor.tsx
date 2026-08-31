@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import BlockView, { type Block } from "@/components/BlockView";
+import RichTextEditor from "@/components/panel/RichTextEditor";
 
 type Lesson = { id: string; titulo: string; orden: number; blocks: Block[] };
 type Module = { id: string; titulo: string; orden: number; lessons: Lesson[] };
@@ -49,6 +50,8 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   const [signers, setSigners] = useState<Signer[]>(data.signers);
   const [instructores, setInstructores] = useState<Instructor[]>(data.instructores);
   const [capacitadorId, setCapacitadorId] = useState<string | null>(data.course.capacitador_id);
+  const [editingBlock, setEditingBlock] = useState<number | null>(null);
+  const [draftHtml, setDraftHtml] = useState("");
   const [err, setErr] = useState<string | null>(null);
 
   function fail(e: any) { setErr(e?.message ?? "Ocurrió un error"); }
@@ -185,6 +188,14 @@ export default function CourseEditor({ data }: { data: EditorData }) {
     copy[sel.m].lessons[sel.l].blocks = lesson.blocks.filter((_, k) => k !== bi);
     setMods(copy);
   }
+  async function updateBlock(bi: number, contenido: Record<string, any>) {
+    if (!sel || !lesson) return;
+    const { error } = await supabase.from("content_blocks").update({ contenido }).eq("id", lesson.blocks[bi].id);
+    if (error) return fail(error);
+    const copy = [...mods];
+    copy[sel.m].lessons[sel.l].blocks[bi] = { ...lesson.blocks[bi], contenido };
+    setMods(copy);
+  }
 
   // ---------- examen ----------
   async function saveCfg(patch: Partial<typeof cfg>) {
@@ -275,7 +286,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
                   <button className="tx" onClick={() => delModule(mi)}>✕</button>
                 </div>
                 {m.lessons.map((l, li) => (
-                  <div key={l.id} className={`tles${sel?.m === mi && sel?.l === li ? " sel" : ""}`} onClick={() => setSel({ m: mi, l: li })}>
+                  <div key={l.id} className={`tles${sel?.m === mi && sel?.l === li ? " sel" : ""}`} onClick={() => { setSel({ m: mi, l: li }); setEditingBlock(null); }}>
                     <span className="tles-dot" />
                     <input className="tinp les" defaultValue={l.titulo}
                       onClick={(e) => e.stopPropagation()} onBlur={(e) => renameLesson(mi, li, e.target.value)} />
@@ -298,11 +309,30 @@ export default function CourseEditor({ data }: { data: EditorData }) {
                   </div>
                   <h3 style={{ fontSize: 16, marginBottom: 12 }}>Bloques</h3>
                   {lesson.blocks.length ? lesson.blocks.map((b, bi) => (
-                    <div className="blk-row" key={b.id}>
-                      <span className="blk-label" style={{ margin: 0 }}>{b.tipo}</span>
-                      <span className="t">{blockSummary(b)}</span>
-                      <button className="tx" onClick={() => delBlock(bi)}>✕</button>
-                    </div>
+                    editingBlock === bi ? (
+                      <div key={b.id} style={{ marginBottom: 10 }}>
+                        <div className="ed-lab">Editando bloque de texto</div>
+                        <RichTextEditor value={draftHtml} onChange={setDraftHtml} />
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }}
+                            onClick={() => { updateBlock(bi, { html: draftHtml }); setEditingBlock(null); }}>
+                            Guardar
+                          </button>
+                          <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={() => setEditingBlock(null)}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="blk-row" key={b.id}>
+                        <span className="blk-label" style={{ margin: 0 }}>{b.tipo}</span>
+                        <span className="t">{blockSummary(b)}</span>
+                        {b.tipo === "richtext" && (
+                          <button className="tx" title="Editar" onClick={() => { setEditingBlock(bi); setDraftHtml(b.contenido?.html || ""); }}>✎</button>
+                        )}
+                        <button className="tx" onClick={() => delBlock(bi)}>✕</button>
+                      </div>
+                    )
                   )) : <p style={{ color: "var(--muted)", fontSize: 13 }}>Sin bloques todavía.</p>}
                   <BlockAdder onAdd={addBlock} />
                 </>
@@ -362,7 +392,9 @@ function BlockAdder({ onAdd }: { onAdd: (t: Block["tipo"], c: Record<string, any
             <input className="ed-inp" placeholder="Proveedor (YouTube, Storage…)" onChange={set("prov")} />
             <input className="ed-inp" placeholder="URL" onChange={set("url")} />
           </>)}
-          {tipo === "richtext" && <textarea className="ed-inp" rows={3} placeholder="<p>Texto…</p>" onChange={set("html")} />}
+          {tipo === "richtext" && (
+            <RichTextEditor value={f.html || ""} onChange={(html) => setF({ ...f, html })} />
+          )}
           {tipo === "download" && (<>
             <input className="ed-inp" placeholder="Nombre del archivo" onChange={set("nombre")} />
             <input className="ed-inp" placeholder="Tipo (PDF, XLSX…)" onChange={set("tipo")} />

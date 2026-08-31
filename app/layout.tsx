@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { getTenantByHost, isPlatformHost } from "@/lib/tenant";
 import { getUserContext } from "@/lib/auth";
-import Topbar from "@/components/Topbar";
-import PoweredBy from "@/components/PoweredBy";
+import SiteChrome from "@/components/SiteChrome";
 import MotionFX from "@/components/motion/MotionFX";
 import "./globals.css";
 
@@ -39,8 +37,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const tenant = await getTenantByHost();
   const user = await getUserContext();
   const accent = tenant?.color_primario ?? "#1f5c9c";
-  const pathname = headers().get("x-pathname") || "";
-  const inPanel = pathname.startsWith("/panel");
 
   return (
     <html lang="es-AR">
@@ -54,22 +50,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body style={{ ["--accent" as string]: accent }}>
         <MotionFX />
-        {/* El panel (/panel) tiene su propio sidenav de punta a punta;
-            no lleva el Topbar ni el footer públicos por encima. */}
-        {tenant && !inPanel && (
-          <Topbar
-            academia={tenant.nombre_academia}
-            logoUrl={tenant.logo_url}
-            authed={!!user}
-            rol={user?.rol ?? null}
-          />
-        )}
-        <main>{children}</main>
-        {tenant && !inPanel && (
-          <footer className="foot wrap">
-            {tenant.nombre_academia} · Certificaciones con verificación pública
-            <PoweredBy />
-          </footer>
+        {tenant ? (
+          <SiteChrome academia={tenant.nombre_academia} logoUrl={tenant.logo_url} authed={!!user} rol={user?.rol ?? null}>
+            {children}
+          </SiteChrome>
+        ) : (
+          <main>{children}</main>
         )}
       </body>
     </html>
