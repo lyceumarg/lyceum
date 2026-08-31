@@ -9,9 +9,9 @@ export default function SitioA() {
   return (
     <div className="sitioa">
       <div className="wrap">
-        <nav className="nav" style={{ padding: "22px 0", borderBottom: "1px solid var(--line)", marginBottom: 6 }}>
+        <nav className="sitioa-nav">
           <Link_ />
-          <div style={{ display: "flex", alignItems: "center", gap: 26, marginLeft: "auto" }}>
+          <div className="sitioa-nav-links">
             <a href="#como-funciona">Cómo funciona</a>
             <a href="/login">Ingresar</a>
             <a href="mailto:hola@lyceum.com.ar" className="btn sm" style={ctaStyle}>
