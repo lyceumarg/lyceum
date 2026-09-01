@@ -408,6 +408,22 @@ textarea.ed-inp{resize:vertical}
 .les.done .dot{background:var(--verify);border-color:var(--verify);color:#fff}
 .pl-main{padding:26px 30px;max-height:640px;overflow:auto}
 .pl-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+/* mobile: la lista de lecciones pasa de columna angosta a franja horizontal
+   deslizable arriba del contenido — antes quedaba apretada contra el texto
+   y todo se veía cortado. */
+@media(max-width:760px){
+  .player{grid-template-columns:1fr}
+  .pl-side{
+    display:flex;flex-direction:row;align-items:center;gap:4px;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;max-height:none;border-right:none;
+    border-bottom:1px solid var(--line);padding:10px 10px;
+  }
+  .pl-side h4{display:none}
+  .les{flex:0 0 auto;border-left:none;border-bottom:2px solid transparent;border-radius:8px;padding:8px 12px;white-space:nowrap}
+  .les.active{border-left:none;border-bottom-color:var(--accent)}
+  .les span:not(.dot){max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pl-main{max-height:none;padding:20px 16px}
+}
 .blk{margin-top:18px}
 .blk-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
 .blk-stage{background:var(--ink);border-radius:var(--radius);aspect-ratio:16/9;display:grid;place-items:center;color:#9dc1b4;position:relative}
@@ -416,6 +432,10 @@ textarea.ed-inp{resize:vertical}
 .blk-play{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);display:grid;place-items:center;margin:0 auto;color:#e9ede6}
 .blk-rich{font-size:14.5px;color:#28352e}
 .blk-rich p{margin-bottom:10px}.blk-rich ul{margin:8px 0 10px 20px}.blk-rich strong{color:var(--ink)}
+.blk-rich p:last-child{margin-bottom:0}
+.blk-destacado{background:var(--soft,#eef0fb);border-left:3px solid var(--accent);border-radius:8px;padding:16px 18px}
+.blk-caso{background:#fbf3e3;border-left:3px solid #b0863a;border-radius:8px;padding:16px 18px}
+.blk-caso-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8a6a1f;font-weight:700;margin-bottom:8px}
 .blk-link,.blk-file{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-2);color:inherit;text-decoration:none}
 .blk-link:hover,.blk-file:hover{border-color:var(--line-strong);background:#fff}
 .blk-quiz{border:1px solid var(--soft);background:#fbf9f5;border-radius:var(--radius);padding:18px 20px}

@@ -3,7 +3,7 @@ import { useState } from "react";
 
 export type Block = {
   id: string;
-  tipo: "video" | "slides" | "richtext" | "download" | "link" | "embed" | "quiz" | "scorm";
+  tipo: "video" | "slides" | "richtext" | "download" | "link" | "embed" | "quiz" | "scorm" | "destacado" | "caso_practico";
   contenido: Record<string, any>;
   media_url?: string | null;
 };
@@ -11,6 +11,7 @@ export type Block = {
 const NOMBRE: Record<Block["tipo"], string> = {
   video: "Video", slides: "Presentación", richtext: "Texto", download: "Descargable",
   link: "Enlace externo", embed: "Embed", quiz: "Quiz", scorm: "SCORM",
+  destacado: "Destacado", caso_practico: "Caso práctico",
 };
 
 function pick(c: Record<string, any>, ...keys: string[]) {
@@ -44,6 +45,19 @@ export default function BlockView({ b }: { b: Block }) {
     );
   } else if (b.tipo === "richtext") {
     inner = <div className="blk-rich" dangerouslySetInnerHTML={{ __html: pick(c, "html") ?? "<p>(sin contenido)</p>" }} />;
+  } else if (b.tipo === "destacado") {
+    inner = (
+      <div className="blk-rich blk-destacado">
+        <div dangerouslySetInnerHTML={{ __html: pick(c, "html") ?? "<p>(sin contenido)</p>" }} />
+      </div>
+    );
+  } else if (b.tipo === "caso_practico") {
+    inner = (
+      <div className="blk-rich blk-caso">
+        <div className="blk-caso-tag">Caso práctico</div>
+        <div dangerouslySetInnerHTML={{ __html: pick(c, "html") ?? "<p>(sin contenido)</p>" }} />
+      </div>
+    );
   } else if (b.tipo === "link") {
     inner = (
       <a className="blk-file" href={url ?? "#"} target="_blank" rel="noopener noreferrer">
@@ -72,7 +86,9 @@ export default function BlockView({ b }: { b: Block }) {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <div className="blk-label">{NOMBRE[b.tipo]}</div>
+      {b.tipo !== "richtext" && b.tipo !== "destacado" && b.tipo !== "caso_practico" && (
+        <div className="blk-label">{NOMBRE[b.tipo]}</div>
+      )}
       {inner}
     </div>
   );

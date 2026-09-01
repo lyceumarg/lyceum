@@ -29,6 +29,7 @@ export type Instructor = { id: string; nombre: string; headline: string | null; 
 
 const TIPOS: { t: Block["tipo"]; l: string }[] = [
   { t: "video", l: "Video" }, { t: "slides", l: "Slides" }, { t: "richtext", l: "Texto" },
+  { t: "destacado", l: "Destacado" }, { t: "caso_practico", l: "Caso práctico" },
   { t: "download", l: "Descargable" }, { t: "link", l: "Enlace" }, { t: "embed", l: "Embed" }, { t: "quiz", l: "Quiz" },
 ];
 
@@ -335,7 +336,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
                     <div className="blk-row" key={b.id}>
                       <span className="blk-label" style={{ margin: 0 }}>{b.tipo}</span>
                       <span className="t">{blockSummary(b)}</span>
-                      {b.tipo === "richtext" && (
+                      {["richtext", "destacado", "caso_practico"].includes(b.tipo) && (
                         <button className="tx" title="Editar" onClick={() => { setEditingBlock(bi); setDraftHtml(b.contenido?.html || ""); }}>✎</button>
                       )}
                       <button className="tx" onClick={() => delBlock(bi)}>✕</button>
@@ -391,7 +392,7 @@ function BlockAdder({ onAdd }: { onAdd: (t: Block["tipo"], c: Record<string, any
     if (!tipo) return;
     let c: Record<string, any> = {};
     if (["video", "slides", "embed"].includes(tipo)) c = { titulo: f.titulo, proveedor: f.prov, url: f.url };
-    else if (tipo === "richtext") c = { html: f.html || "<p></p>" };
+    else if (["richtext", "destacado", "caso_practico"].includes(tipo)) c = { html: f.html || "<p></p>" };
     else if (tipo === "download") c = { nombre: f.nombre || "Material.pdf", tipo_archivo: f.tipo || "PDF", url: f.url };
     else if (tipo === "link") c = { titulo: f.titulo || "Enlace", fuente: f.fuente, url: f.url };
     else if (tipo === "quiz") c = { pregunta: f.q, opciones: [f.o0, f.o1, f.o2, f.o3].filter(Boolean), correcta: Number(f.ans || 1) - 1 };
@@ -411,7 +412,7 @@ function BlockAdder({ onAdd }: { onAdd: (t: Block["tipo"], c: Record<string, any
             <input className="ed-inp" placeholder="Proveedor (YouTube, Storage…)" onChange={set("prov")} />
             <input className="ed-inp" placeholder="URL" onChange={set("url")} />
           </>)}
-          {tipo === "richtext" && (
+          {["richtext", "destacado", "caso_practico"].includes(tipo) && (
             <RichTextEditor value={f.html || ""} onChange={(html) => setF({ ...f, html })} />
           )}
           {tipo === "download" && (<>
