@@ -3,7 +3,7 @@ import { useState } from "react";
 
 export type Block = {
   id: string;
-  tipo: "video" | "slides" | "richtext" | "download" | "link" | "embed" | "quiz" | "scorm" | "destacado" | "caso_practico";
+  tipo: "video" | "slides" | "richtext" | "download" | "link" | "embed" | "quiz" | "scorm" | "destacado" | "caso_practico" | "imagen";
   contenido: Record<string, any>;
   media_url?: string | null;
 };
@@ -11,7 +11,7 @@ export type Block = {
 const NOMBRE: Record<Block["tipo"], string> = {
   video: "Video", slides: "Presentación", richtext: "Texto", download: "Descargable",
   link: "Enlace externo", embed: "Embed", quiz: "Quiz", scorm: "SCORM",
-  destacado: "Destacado", caso_practico: "Caso práctico",
+  destacado: "Destacado", caso_practico: "Caso práctico", imagen: "Imagen",
 };
 
 function pick(c: Record<string, any>, ...keys: string[]) {
@@ -58,6 +58,19 @@ export default function BlockView({ b }: { b: Block }) {
         <div dangerouslySetInnerHTML={{ __html: pick(c, "html") ?? "<p>(sin contenido)</p>" }} />
       </div>
     );
+  } else if (b.tipo === "imagen") {
+    inner = (
+      <figure style={{ margin: 0 }}>
+        {url ? (
+          <img src={url} alt={pick(c, "alt", "titulo") ?? ""} style={{ width: "100%", borderRadius: "var(--radius)", display: "block" }} />
+        ) : (
+          <div style={{ color: "var(--muted)", fontSize: 13 }}>(sin imagen)</div>
+        )}
+        {pick(c, "titulo") && (
+          <figcaption style={{ marginTop: 8, fontSize: 12.5, color: "var(--muted)", textAlign: "center" }}>{pick(c, "titulo")}</figcaption>
+        )}
+      </figure>
+    );
   } else if (b.tipo === "link") {
     inner = (
       <a className="blk-file" href={url ?? "#"} target="_blank" rel="noopener noreferrer">
@@ -86,7 +99,7 @@ export default function BlockView({ b }: { b: Block }) {
 
   return (
     <div style={{ marginTop: 20 }}>
-      {b.tipo !== "richtext" && b.tipo !== "destacado" && b.tipo !== "caso_practico" && (
+      {!["richtext", "destacado", "caso_practico", "imagen"].includes(b.tipo) && (
         <div className="blk-label">{NOMBRE[b.tipo]}</div>
       )}
       {inner}

@@ -28,7 +28,7 @@ type Signer = { id: string; nombre: string; cargo: string | null; firma_url: str
 export type Instructor = { id: string; nombre: string; headline: string | null; bio: string | null; foto_url: string | null; linkedin_url: string | null };
 
 const TIPOS: { t: Block["tipo"]; l: string }[] = [
-  { t: "video", l: "Video" }, { t: "slides", l: "Slides" }, { t: "richtext", l: "Texto" },
+  { t: "video", l: "Video" }, { t: "slides", l: "Slides" }, { t: "imagen", l: "Imagen" }, { t: "richtext", l: "Texto" },
   { t: "destacado", l: "Destacado" }, { t: "caso_practico", l: "Caso práctico" },
   { t: "download", l: "Descargable" }, { t: "link", l: "Enlace" }, { t: "embed", l: "Embed" }, { t: "quiz", l: "Quiz" },
 ];
@@ -343,7 +343,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
                     </div>
                   )
                 )) : <p style={{ color: "var(--muted)", fontSize: 13 }}>Sin bloques todavía.</p>}
-                <BlockAdder onAdd={addBlock} />
+                <BlockAdder onAdd={addBlock} tenantId={data.tenantId} />
               </>
             ) : <p style={{ color: "var(--muted)", fontSize: 13 }}>Seleccioná o creá una lección.</p>}
           </div>
@@ -383,13 +383,29 @@ function blockSummary(b: Block) {
 }
 
 // ---------- alta de bloque ----------
-function BlockAdder({ onAdd }: { onAdd: (t: Block["tipo"], c: Record<string, any>) => void }) {
+function BlockAdder({ onAdd, tenantId }: { onAdd: (t: Block["tipo"], c: Record<string, any>) => void; tenantId: string }) {
   const [tipo, setTipo] = useState<Block["tipo"] | null>(null);
   const [f, setF] = useState<Record<string, string>>({});
+  const [imgFile, setImgFile] = useState<File | null>(null);
+  const [subiendo, setSubiendo] = useState(false);
+  const [imgErr, setImgErr] = useState<string | null>(null);
   const set = (k: string) => (e: any) => setF({ ...f, [k]: e.target.value });
 
-  function confirmar() {
+  async function confirmar() {
     if (!tipo) return;
+    if (tipo === "imagen") {
+      if (!imgFile) { setImgErr("Elegí un archivo de imagen."); return; }
+      setSubiendo(true); setImgErr(null);
+      const supabase = createClient();
+      const path = `${tenantId}/${Date.now()}-${imgFile.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+      const up = await supabase.storage.from("contenido-curso").upload(path, imgFile);
+      setSubiendo(false);
+      if (up.error) { setImgErr("No se pudo subir la imagen: " + up.error.message); return; }
+      const url = supabase.storage.from("contenido-curso").getPublicUrl(path).data.publicUrl;
+      onAdd("imagen", { url, titulo: f.titulo || null, alt: f.titulo || "" });
+      setTipo(null); setF({}); setImgFile(null);
+      return;
+    }
     let c: Record<string, any> = {};
     if (["video", "slides", "embed"].includes(tipo)) c = { titulo: f.titulo, proveedor: f.prov, url: f.url };
     else if (["richtext", "destacado", "caso_practico"].includes(tipo)) c = { html: f.html || "<p></p>" };
@@ -412,6 +428,13 @@ function BlockAdder({ onAdd }: { onAdd: (t: Block["tipo"], c: Record<string, any
             <input className="ed-inp" placeholder="Proveedor (YouTube, Storage…)" onChange={set("prov")} />
             <input className="ed-inp" placeholder="URL" onChange={set("url")} />
           </>)}
+          {tipo === "imagen" && (<>
+            <label className="ed-lab">Archivo de imagen (PNG, JPG, WEBP)</label>
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(e) => setImgFile(e.target.files?.[0] ?? null)} style={{ marginBottom: 10 }} />
+            <input className="ed-inp" placeholder="Título / leyenda (opcional)" onChange={set("titulo")} />
+            {imgErr && <div className="msg err">{imgErr}</div>}
+          </>)}
           {["richtext", "destacado", "caso_practico"].includes(tipo) && (
             <RichTextEditor value={f.html || ""} onChange={(html) => setF({ ...f, html })} />
           )}
@@ -433,7 +456,9 @@ function BlockAdder({ onAdd }: { onAdd: (t: Block["tipo"], c: Record<string, any
             <input className="ed-inp" placeholder="Opción 4" onChange={set("o3")} />
             <input className="ed-inp" placeholder="N° de opción correcta (1-4)" onChange={set("ans")} />
           </>)}
-          <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }} onClick={confirmar}>Agregar</button>
+          <button className="btn accent" style={{ padding: "8px 14px", fontSize: 13 }} onClick={confirmar} disabled={subiendo}>
+            {subiendo ? "Subiendo…" : "Agregar"}
+          </button>
         </div>
       )}
     </div>
