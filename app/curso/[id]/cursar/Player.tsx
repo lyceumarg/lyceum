@@ -64,14 +64,19 @@ export default function Player({
       <div className="player">
         <aside className="pl-side">
           <h4>Contenido</h4>
-          {flat.map((l) => (
-            <div
-              key={l.id}
-              className={`les${l.id === activa ? " active" : ""}${done.has(l.id) ? " done" : ""}`}
-              onClick={() => setActiva(l.id)}
-            >
-              <span className="dot">{done.has(l.id) ? "✓" : ""}</span>
-              <span>{l.titulo}</span>
+          {modulos.map((m) => (
+            <div key={m.id} className="pl-mod">
+              <div className="pl-mod-title">{m.titulo}</div>
+              {m.lessons.map((l) => (
+                <div
+                  key={l.id}
+                  className={`les${l.id === activa ? " active" : ""}${done.has(l.id) ? " done" : ""}`}
+                  onClick={() => setActiva(l.id)}
+                >
+                  <span className="dot">{done.has(l.id) ? "✓" : ""}</span>
+                  <span>{l.titulo}</span>
+                </div>
+              ))}
             </div>
           ))}
         </aside>
