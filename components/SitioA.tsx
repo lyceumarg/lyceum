@@ -83,6 +83,51 @@ export default function SitioA() {
           </div>
         </div>
 
+        <div className="sec">
+          <div className="sec-h rv">Qué incluye</div>
+          <div className="feature-grid">
+            <div className="feature rv">
+              <h4>Contenido, sin límites de formato</h4>
+              <p>
+                Un editor de texto como el de cualquier procesador de texto — pegás desde Word y se
+                mantiene el formato. Sumás imágenes, video y presentaciones incrustadas, y recuadros para
+                destacar una idea o mostrar un caso práctico.
+              </p>
+            </div>
+            <div className="feature rv">
+              <h4>Dos formas de certificar</h4>
+              <p>
+                Constancia de participación al completar el contenido, o certificado de aprobación al
+                pasar el examen — con firma digitalizada y un folio único que cualquiera puede verificar
+                públicamente, sin necesitar una cuenta.
+              </p>
+            </div>
+            <div className="feature rv">
+              <h4>Gestión pensada para el día a día</h4>
+              <p>
+                Capacitadores con ficha propia, reutilizables entre cursos. Categorías a tu medida.
+                Participantes con su avance y puntaje a la vista, y reportes exportables en CSV o Word,
+                con tu logo.
+              </p>
+            </div>
+            <div className="feature rv">
+              <h4>Tu marca, de punta a punta</h4>
+              <p>
+                Dominio, logo y color propios en todo lo que ve el alumno. La plataforma queda como una
+                referencia chica al pie — nunca compite con la tuya.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="sitioa-cta rv">
+          <h3>Armá tu academia con marca propia.</h3>
+          <p>Te ayudamos a poner todo en marcha — contenido, certificación y verificación incluidos.</p>
+          <a href="mailto:hola@lyceum.com.ar" className="btn" style={{ background: "var(--indigo)" }}>
+            Crear mi academia →
+          </a>
+        </div>
+
         <footer style={{ padding: "34px 0 60px", borderTop: "1px solid var(--line)", marginTop: 10, fontFamily: "JetBrains Mono, monospace", fontSize: 11.5, letterSpacing: ".04em", color: "var(--muted)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
           <span>LYCEUM · PLATAFORMA DE ACADEMIAS CON CERTIFICACIÓN</span>
           <span>© {new Date().getFullYear()} Lyceum</span>
