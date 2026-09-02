@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const { courseId, lista } = await request.json();
+  const { courseId, lista, cortesia } = await request.json();
   if (!courseId || typeof lista !== "string") {
     return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
   }
@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
 
       const { error: errInscribir } = await admin.from("enrollments").insert({
         tenant_id: user.tenantId, user_id: userId, course_id: courseId, origen: "masivo", estado: "activa",
+        cortesia: !!cortesia,
       });
       if (errInscribir) {
         resultados.push({ email, estado: "error", detalle: errInscribir.message });

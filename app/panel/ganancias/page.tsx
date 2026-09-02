@@ -8,6 +8,7 @@ type EnrollRow = {
   origen: string;
   estado: string;
   fecha_inscripcion: string;
+  cortesia: boolean;
   courses: { titulo: string; precio: number } | null;
 };
 
@@ -19,21 +20,23 @@ export default async function GananciasPage() {
   // RLS: tenant_admin ve todas las inscripciones de su tenant.
   // El ingreso se calcula por CADA inscripción activa (precio del curso al
   // momento de consultar), sin importar si se pagó por Mercado Pago o por
-  // fuera de la plataforma (convenio, transferencia, inscripción manual).
+  // fuera de la plataforma (convenio, transferencia, inscripción manual) —
+  // salvo que esté marcada como cortesía, que no genera ingreso aunque el
+  // curso tenga precio.
   const { data } = await supabase
     .from("enrollments")
-    .select("id, origen, estado, fecha_inscripcion, courses(titulo, precio)")
+    .select("id, origen, estado, fecha_inscripcion, cortesia, courses(titulo, precio)")
     .order("fecha_inscripcion", { ascending: false })
     .limit(1000);
 
   const todas = (data ?? []) as unknown as EnrollRow[];
   const validas = todas.filter((e) => e.estado !== "cancelada");
 
-  const totalIngresos = validas.reduce((s, e) => s + Number(e.courses?.precio ?? 0), 0);
+  const totalIngresos = validas.reduce((s, e) => s + (e.cortesia ? 0 : Number(e.courses?.precio ?? 0)), 0);
   const ticketProm = validas.length ? totalIngresos / validas.length : 0;
   const viaMP = validas.filter((e) => e.origen === "compra").length;
   const porFuera = validas.length - viaMP;
-  const gratuitas = validas.filter((e) => Number(e.courses?.precio ?? 0) === 0).length;
+  const gratuitas = validas.filter((e) => e.cortesia || Number(e.courses?.precio ?? 0) === 0).length;
 
   const meses: { label: string; key: string; total: number }[] = [];
   const now = new Date();
@@ -45,7 +48,7 @@ export default async function GananciasPage() {
     const d = new Date(e.fecha_inscripcion);
     const key = `${d.getFullYear()}-${d.getMonth()}`;
     const m = meses.find((x) => x.key === key);
-    if (m) m.total += Number(e.courses?.precio ?? 0);
+    if (m) m.total += e.cortesia ? 0 : Number(e.courses?.precio ?? 0);
   }
   const maxMes = Math.max(1, ...meses.map((m) => m.total));
 
@@ -60,7 +63,8 @@ export default async function GananciasPage() {
     fecha: new Date(e.fecha_inscripcion).toLocaleDateString("es-AR"),
     curso: e.courses?.titulo ?? "—",
     origen: origenLabel[e.origen] ?? e.origen,
-    monto: Number(e.courses?.precio ?? 0),
+    monto: e.cortesia ? 0 : Number(e.courses?.precio ?? 0),
+    cortesia: e.cortesia ? "Sí" : "No",
   }));
 
   return (
@@ -78,6 +82,7 @@ export default async function GananciasPage() {
             { key: "curso", label: "Curso" },
             { key: "origen", label: "Origen" },
             { key: "monto", label: "Monto (ARS)" },
+            { key: "cortesia", label: "Cortesía" },
           ]}
         />
       </div>
@@ -123,7 +128,7 @@ export default async function GananciasPage() {
                 <td>{new Date(e.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
                 <td style={{ fontWeight: 600 }}>{e.courses?.titulo ?? "—"}</td>
                 <td><span className={`pill ${origenClase[e.origen] ?? ""}`}>{origenLabel[e.origen] ?? e.origen}</span></td>
-                <td className="mono">{money(Number(e.courses?.precio ?? 0))}</td>
+                <td className="mono">{e.cortesia ? <span className="pill t">Cortesía</span> : money(Number(e.courses?.precio ?? 0))}</td>
               </tr>
             ))}
           </tbody>

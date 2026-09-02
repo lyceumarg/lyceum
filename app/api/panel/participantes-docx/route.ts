@@ -9,13 +9,14 @@ import { getUserContext, isStaff } from "@/lib/auth";
 export const runtime = "nodejs";
 
 const COLS = [
-  { key: "alumno", label: "Alumno", w: 2200 },
-  { key: "curso", label: "Curso", w: 2600 },
-  { key: "estado", label: "Estado", w: 1200 },
-  { key: "origen", label: "Origen", w: 1200 },
-  { key: "avance", label: "Avance", w: 900 },
-  { key: "finalizacion", label: "Finalización", w: 1200 },
-  { key: "puntaje", label: "Puntaje", w: 900 },
+  { key: "alumno", label: "Alumno", w: 2000 },
+  { key: "curso", label: "Curso", w: 2300 },
+  { key: "estado", label: "Estado", w: 1100 },
+  { key: "origen", label: "Origen", w: 1000 },
+  { key: "cortesia", label: "Cortesía", w: 800 },
+  { key: "avance", label: "Avance", w: 800 },
+  { key: "finalizacion", label: "Finalización", w: 1100 },
+  { key: "puntaje", label: "Puntaje", w: 800 },
 ];
 const TABLE_W = COLS.reduce((s, c) => s + c.w, 0);
 
@@ -80,9 +81,10 @@ export async function GET() {
       celda(f.curso_titulo || "—", COLS[1].w),
       celda(ESTADO_LABEL[f.estado] ?? f.estado, COLS[2].w),
       celda(ORIGEN_LABEL[f.origen] ?? f.origen, COLS[3].w),
-      celda(`${f.avance_pct ?? 0}%`, COLS[4].w),
-      celda(f.cert_fecha ? new Date(f.cert_fecha).toLocaleDateString("es-AR") : "—", COLS[5].w),
-      celda(f.cert_puntaje != null ? `${f.cert_puntaje}%` : "—", COLS[6].w),
+      celda(f.cortesia ? "Sí" : "No", COLS[4].w),
+      celda(`${f.avance_pct ?? 0}%`, COLS[5].w),
+      celda(f.cert_fecha ? new Date(f.cert_fecha).toLocaleDateString("es-AR") : "—", COLS[6].w),
+      celda(f.cert_puntaje != null ? `${f.cert_puntaje}%` : "—", COLS[7].w),
     ],
   }));
 

@@ -24,7 +24,7 @@ export type EditorData = {
   instructores: Instructor[];
   categorias: { id: string; nombre: string }[];
   inscriptos: {
-    id: string; estado: string; origen: string; fecha_inscripcion: string;
+    id: string; estado: string; origen: string; fecha_inscripcion: string; cortesia: boolean;
     profiles: { nombre: string | null; email: string | null } | null;
   }[];
 };
@@ -690,6 +690,7 @@ type ResultadoMasivo = { email: string; estado: string; detalle?: string };
 
 function InscripcionManualTab({ courseId }: { courseId: string }) {
   const [lista, setLista] = useState("");
+  const [cortesia, setCortesia] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [resultados, setResultados] = useState<ResultadoMasivo[] | null>(null);
   const [invalidas, setInvalidas] = useState<string[]>([]);
@@ -701,7 +702,7 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
       const res = await fetch("/api/panel/inscripcion-manual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId, lista }),
+        body: JSON.stringify({ courseId, lista, cortesia }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error ?? "No se pudo procesar la lista"); return; }
@@ -745,7 +746,11 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
           onChange={(e) => setLista(e.target.value)}
         />
         {err && <div className="msg err" style={{ marginTop: 4 }}>{err}</div>}
-        <button className="btn accent" style={{ marginTop: 10 }} onClick={enviar} disabled={enviando || !lista.trim()}>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, margin: "10px 0" }}>
+          <input type="checkbox" checked={cortesia} onChange={(e) => setCortesia(e.target.checked)} />
+          Marcar esta tanda como cortesía (no cuenta como ingreso en Ganancias, aunque el curso tenga precio)
+        </label>
+        <button className="btn accent" onClick={enviar} disabled={enviando || !lista.trim()}>
           {enviando ? "Procesando…" : "Inscribir lista"}
         </button>
       </div>
@@ -780,7 +785,7 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
 
 // ---------- inscriptos del curso: listado + baja completa (sin dejar rastro) ----------
 type Inscripto = {
-  id: string; estado: string; origen: string; fecha_inscripcion: string;
+  id: string; estado: string; origen: string; fecha_inscripcion: string; cortesia: boolean;
   profiles: { nombre: string | null; email: string | null } | null;
 };
 
@@ -805,12 +810,22 @@ function InscriptosTab({ initial }: { initial: Inscripto[] }) {
     setLista(lista.filter((x) => x.id !== i.id));
   }
 
+  async function toggleCortesia(i: Inscripto) {
+    const nuevo = !i.cortesia;
+    setLista(lista.map((x) => (x.id === i.id ? { ...x, cortesia: nuevo } : x))); // optimista
+    const { error } = await supabase.from("enrollments").update({ cortesia: nuevo }).eq("id", i.id);
+    if (error) {
+      setLista(lista.map((x) => (x.id === i.id ? { ...x, cortesia: !nuevo } : x))); // revertir
+      alert("No se pudo actualizar: " + error.message);
+    }
+  }
+
   if (!lista.length) return <div className="card empty">Todavía no hay nadie inscripto en este curso.</div>;
 
   return (
     <div className="tbl-scroll">
       <table className="tbl">
-        <thead><tr><th>Alumno</th><th>Estado</th><th>Origen</th><th>Inscripción</th><th></th></tr></thead>
+        <thead><tr><th>Alumno</th><th>Estado</th><th>Origen</th><th>Inscripción</th><th>Cortesía</th><th></th></tr></thead>
         <tbody>
           {lista.map((i) => (
             <tr key={i.id}>
@@ -818,6 +833,12 @@ function InscriptosTab({ initial }: { initial: Inscripto[] }) {
               <td><span className={`st ${i.estado}`}>{ESTADO_LABEL[i.estado] ?? i.estado}</span></td>
               <td>{ORIGEN_LABEL_INS[i.origen] ?? i.origen}</td>
               <td>{new Date(i.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
+              <td>
+                <label style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, cursor: "pointer" }}>
+                  <input type="checkbox" checked={i.cortesia} onChange={() => toggleCortesia(i)} />
+                  {i.cortesia ? "Sí" : "No"}
+                </label>
+              </td>
               <td>
                 <button className="btn ghost danger sm" onClick={() => darDeBaja(i)} disabled={busyId === i.id}>
                   {busyId === i.id ? "Dando de baja…" : "Dar de baja"}

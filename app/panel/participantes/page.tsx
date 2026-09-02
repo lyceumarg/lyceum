@@ -27,6 +27,7 @@ export default async function ParticipantesPage() {
     avance: `${f.avance_pct ?? 0}%`,
     finalizacion: f.cert_fecha ? new Date(f.cert_fecha).toLocaleDateString("es-AR") : "",
     puntaje: f.cert_puntaje ?? "",
+    cortesia: f.cortesia ? "Sí" : "No",
   }));
 
   return (
@@ -49,6 +50,7 @@ export default async function ParticipantesPage() {
               { key: "avance", label: "Avance" },
               { key: "finalizacion", label: "Finalización" },
               { key: "puntaje", label: "Puntaje" },
+              { key: "cortesia", label: "Cortesía" },
             ]}
           />
           <a href="/api/panel/participantes-docx" className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }}>
@@ -69,7 +71,7 @@ export default async function ParticipantesPage() {
                 <td style={{ fontWeight: 600 }}>{f.alumno_nombre ?? f.alumno_email ?? "—"}</td>
                 <td>{f.curso_titulo ?? "—"}</td>
                 <td><span className={`st ${f.estado}`}>{ESTADO_LABEL[f.estado] ?? f.estado}</span></td>
-                <td>{ORIGEN_LABEL[f.origen] ?? f.origen}</td>
+                <td>{ORIGEN_LABEL[f.origen] ?? f.origen}{f.cortesia && <span className="pill t" style={{ marginLeft: 6 }}>Cortesía</span>}</td>
                 <td className="mono">{f.avance_pct ?? 0}%</td>
                 <td>{new Date(f.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
                 <td>{f.cert_fecha ? new Date(f.cert_fecha).toLocaleDateString("es-AR") : "—"}</td>
