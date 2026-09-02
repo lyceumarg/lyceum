@@ -3,6 +3,9 @@ import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getUserContext, isStaff } from "@/lib/auth";
+import { currentHost } from "@/lib/tenant";
+import { sendMail } from "@/lib/email";
+import { inscripcionConfirmadaHtml } from "@/lib/emails/inscripcion-confirmada";
 
 type Linea = { email: string; nombre: string | null };
 type Resultado = {
@@ -46,13 +49,20 @@ export async function POST(request: NextRequest) {
   const supabase = createClient();
   const { data: curso } = await supabase
     .from("courses")
-    .select("id")
+    .select("id, titulo")
     .eq("id", courseId)
     .eq("tenant_id", user.tenantId)
     .maybeSingle();
   if (!curso) {
     return NextResponse.json({ error: "Curso no encontrado en tu academia" }, { status: 404 });
   }
+  const { data: branding } = await supabase
+    .from("tenant_branding")
+    .select("nombre_academia")
+    .eq("tenant_id", user.tenantId)
+    .maybeSingle();
+  const academia = branding?.nombre_academia ?? "tu academia";
+  const cursarUrl = `https://${currentHost()}/curso/${courseId}/cursar`;
 
   const { validas, invalidas } = parsearLista(lista);
   if (!validas.length) {
@@ -132,6 +142,16 @@ export async function POST(request: NextRequest) {
         resultados.push({ email, estado: "error", detalle: errInscribir.message });
         continue;
       }
+
+      // Mail al participante SOLO en la primera inscripción (no cuando ya
+      // estaba inscripto — ese caso ya se filtró arriba). Si el envío
+      // falla, no se cae la inscripción en sí, que ya quedó hecha.
+      sendMail({
+        to: [email],
+        subject: `Ya estás inscripto en ${curso.titulo}`,
+        html: inscripcionConfirmadaHtml({ alumnoNombre: nombre, curso: curso.titulo, academia, cursarUrl }),
+      }).catch(() => {});
+
       resultados.push({ email, estado: creado ? "creado_e_inscripto" : "inscripto" });
     } catch (e: any) {
       resultados.push({ email, estado: "error", detalle: e?.message ?? "Error inesperado" });
