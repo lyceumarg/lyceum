@@ -19,13 +19,62 @@ function pick(c: Record<string, any>, ...keys: string[]) {
   return undefined;
 }
 
+// Detecta YouTube/Vimeo en la URL y arma el link de embed real. Si no
+// reconoce el proveedor (u otro tipo de link), devuelve null — ahí se
+// muestra el placeholder con el link "Abrir ↗" como respaldo.
+function embedUrl(url: string): string | null {
+  const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+  return null;
+}
+
 export default function BlockView({ b }: { b: Block }) {
   const c = b.contenido ?? {};
   const url = pick(c, "url") ?? b.media_url ?? undefined;
 
   let inner: React.ReactNode = null;
 
-  if (["video", "slides", "embed", "scorm"].includes(b.tipo)) {
+  if (b.tipo === "video") {
+    const titulo = pick(c, "titulo", "title") ?? "Video";
+    const emb = url ? embedUrl(url) : null;
+    inner = emb ? (
+      <div className="blk-video-wrap">
+        <iframe src={emb} title={titulo} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+      </div>
+    ) : (
+      <div className="blk-stage">
+        <div className="blk-type">VIDEO</div>
+        <div style={{ textAlign: "center" }}>
+          <div className="blk-play">▶</div>
+          <div style={{ marginTop: 12, fontSize: 13, color: "#cfe0d8" }}>{titulo}</div>
+          {url && (
+            <a href={url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: 6, color: "#e9ddc2", fontSize: 12, textDecoration: "underline" }}>
+              Abrir video ↗
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  } else if (b.tipo === "slides") {
+    const titulo = pick(c, "titulo", "title") ?? "Presentación";
+    const esPdf = (pick(c, "tipo_archivo") ?? "").toLowerCase() === "pdf" || (url ?? "").toLowerCase().endsWith(".pdf");
+    const src = url ? (esPdf ? url : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`) : null;
+    inner = src ? (
+      <div className="blk-slides-wrap">
+        <iframe src={src} title={titulo} />
+      </div>
+    ) : (
+      <div className="blk-stage">
+        <div className="blk-type">PRESENTACIÓN</div>
+        <div style={{ textAlign: "center" }}>
+          <div className="blk-play">▶</div>
+          <div style={{ marginTop: 12, fontSize: 13, color: "#cfe0d8" }}>{titulo}</div>
+        </div>
+      </div>
+    );
+  } else if (["embed", "scorm"].includes(b.tipo)) {
     const label = NOMBRE[b.tipo];
     const titulo = pick(c, "titulo", "title") ?? label;
     const prov = pick(c, "proveedor", "provider");

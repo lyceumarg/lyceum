@@ -393,28 +393,42 @@ function blockSummary(b: Block) {
 function BlockAdder({ onAdd, tenantId }: { onAdd: (t: Block["tipo"], c: Record<string, any>) => void; tenantId: string }) {
   const [tipo, setTipo] = useState<Block["tipo"] | null>(null);
   const [f, setF] = useState<Record<string, string>>({});
-  const [imgFile, setImgFile] = useState<File | null>(null);
+  const [archivo, setArchivo] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
-  const [imgErr, setImgErr] = useState<string | null>(null);
+  const [archivoErr, setArchivoErr] = useState<string | null>(null);
   const set = (k: string) => (e: any) => setF({ ...f, [k]: e.target.value });
 
   async function confirmar() {
     if (!tipo) return;
     if (tipo === "imagen") {
-      if (!imgFile) { setImgErr("Elegí un archivo de imagen."); return; }
-      setSubiendo(true); setImgErr(null);
+      if (!archivo) { setArchivoErr("Elegí un archivo de imagen."); return; }
+      setSubiendo(true); setArchivoErr(null);
       const supabase = createClient();
-      const path = `${tenantId}/${Date.now()}-${imgFile.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
-      const up = await supabase.storage.from("contenido-curso").upload(path, imgFile);
+      const path = `${tenantId}/${Date.now()}-${archivo.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+      const up = await supabase.storage.from("contenido-curso").upload(path, archivo);
       setSubiendo(false);
-      if (up.error) { setImgErr("No se pudo subir la imagen: " + up.error.message); return; }
+      if (up.error) { setArchivoErr("No se pudo subir la imagen: " + up.error.message); return; }
       const url = supabase.storage.from("contenido-curso").getPublicUrl(path).data.publicUrl;
       onAdd("imagen", { url, titulo: f.titulo || null, alt: f.titulo || "" });
-      setTipo(null); setF({}); setImgFile(null);
+      setTipo(null); setF({}); setArchivo(null);
+      return;
+    }
+    if (tipo === "slides") {
+      if (!archivo) { setArchivoErr("Elegí un archivo .pptx o .pdf."); return; }
+      setSubiendo(true); setArchivoErr(null);
+      const supabase = createClient();
+      const path = `${tenantId}/${Date.now()}-${archivo.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+      const up = await supabase.storage.from("contenido-curso").upload(path, archivo);
+      setSubiendo(false);
+      if (up.error) { setArchivoErr("No se pudo subir el archivo: " + up.error.message); return; }
+      const url = supabase.storage.from("contenido-curso").getPublicUrl(path).data.publicUrl;
+      const tipo_archivo = archivo.name.toLowerCase().endsWith(".pdf") ? "pdf" : "pptx";
+      onAdd("slides", { url, titulo: f.titulo || null, tipo_archivo });
+      setTipo(null); setF({}); setArchivo(null);
       return;
     }
     let c: Record<string, any> = {};
-    if (["video", "slides", "embed"].includes(tipo)) c = { titulo: f.titulo, proveedor: f.prov, url: f.url };
+    if (["video", "embed"].includes(tipo)) c = { titulo: f.titulo, proveedor: f.prov, url: f.url };
     else if (["richtext", "destacado", "caso_practico"].includes(tipo)) c = { html: f.html || "<p></p>" };
     else if (tipo === "download") c = { nombre: f.nombre || "Material.pdf", tipo_archivo: f.tipo || "PDF", url: f.url };
     else if (tipo === "link") c = { titulo: f.titulo || "Enlace", fuente: f.fuente, url: f.url };
@@ -430,17 +444,25 @@ function BlockAdder({ onAdd, tenantId }: { onAdd: (t: Block["tipo"], c: Record<s
       </div>
       {tipo && (
         <div style={{ marginTop: 12, padding: 14, border: "1px dashed var(--line-strong)", borderRadius: 4, background: "var(--surface-2)" }}>
-          {["video", "slides", "embed"].includes(tipo) && (<>
+          {["video", "embed"].includes(tipo) && (<>
             <input className="ed-inp" placeholder="Título" onChange={set("titulo")} />
             <input className="ed-inp" placeholder="Proveedor (YouTube, Storage…)" onChange={set("prov")} />
             <input className="ed-inp" placeholder="URL" onChange={set("url")} />
+            {tipo === "video" && <p style={{ fontSize: 11.5, color: "var(--muted)", marginTop: -6 }}>Un link de YouTube o Vimeo se reproduce embebido; otras URLs se muestran como link.</p>}
+          </>)}
+          {tipo === "slides" && (<>
+            <label className="ed-lab">Archivo (.pptx o .pdf)</label>
+            <input type="file" accept=".pptx,.pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf"
+              onChange={(e) => setArchivo(e.target.files?.[0] ?? null)} style={{ marginBottom: 10 }} />
+            <input className="ed-inp" placeholder="Título (opcional)" onChange={set("titulo")} />
+            {archivoErr && <div className="msg err">{archivoErr}</div>}
           </>)}
           {tipo === "imagen" && (<>
             <label className="ed-lab">Archivo de imagen (PNG, JPG, WEBP)</label>
             <input type="file" accept="image/png,image/jpeg,image/webp,image/gif"
-              onChange={(e) => setImgFile(e.target.files?.[0] ?? null)} style={{ marginBottom: 10 }} />
+              onChange={(e) => setArchivo(e.target.files?.[0] ?? null)} style={{ marginBottom: 10 }} />
             <input className="ed-inp" placeholder="Título / leyenda (opcional)" onChange={set("titulo")} />
-            {imgErr && <div className="msg err">{imgErr}</div>}
+            {archivoErr && <div className="msg err">{archivoErr}</div>}
           </>)}
           {["richtext", "destacado", "caso_practico"].includes(tipo) && (
             <RichTextEditor value={f.html || ""} onChange={(html) => setF({ ...f, html })} />

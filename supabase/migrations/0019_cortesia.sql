@@ -8,6 +8,9 @@ alter table enrollments add column if not exists cortesia boolean not null defau
 
 -- participantes_con_avance ahora también devuelve cortesia y el precio
 -- del curso, para que el panel pueda calcular ingresos correctamente.
+-- Postgres no permite cambiar el tipo de retorno (columnas) de una función
+-- existente con CREATE OR REPLACE — hay que borrarla primero.
+drop function if exists public.participantes_con_avance();
 create or replace function public.participantes_con_avance()
 returns table (
   enrollment_id uuid, estado text, origen text, fecha_inscripcion timestamptz, cortesia boolean,
