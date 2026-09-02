@@ -23,6 +23,10 @@ export type EditorData = {
   signers: Signer[];
   instructores: Instructor[];
   categorias: { id: string; nombre: string }[];
+  inscriptos: {
+    id: string; estado: string; origen: string; fecha_inscripcion: string;
+    profiles: { nombre: string | null; email: string | null } | null;
+  }[];
 };
 type Signer = { id: string; nombre: string; cargo: string | null; firma_url: string | null; orden: number };
 export type Instructor = { id: string; nombre: string; headline: string | null; bio: string | null; foto_url: string | null; linkedin_url: string | null };
@@ -41,7 +45,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
 
   const searchParams = useSearchParams();
   const tabInicial = searchParams.get("tab") === "manual" ? "manual" : "c";
-  const [tab, setTab] = useState<"c" | "e" | "cert" | "manual">(tabInicial);
+  const [tab, setTab] = useState<"c" | "e" | "cert" | "manual" | "inscriptos">(tabInicial);
   const [course, setCourse] = useState(data.course);
   const [mods, setMods] = useState<Module[]>(data.modulos);
   const [sel, setSel] = useState<{ m: number; l: number } | null>(
@@ -276,6 +280,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
         <button className={`tab${tab === "e" ? " on" : ""}`} onClick={() => setTab("e")}>Examen de certificación</button>
         <button className={`tab${tab === "cert" ? " on" : ""}`} onClick={() => setTab("cert")}>Certificado</button>
         <button className={`tab${tab === "manual" ? " on" : ""}`} onClick={() => setTab("manual")}>Inscripción manual</button>
+        <button className={`tab${tab === "inscriptos" ? " on" : ""}`} onClick={() => setTab("inscriptos")}>Inscriptos ({data.inscriptos.length})</button>
       </div>
 
       {tab === "c" ? (
@@ -369,8 +374,10 @@ export default function CourseEditor({ data }: { data: EditorData }) {
         <ExamEditor cfg={cfg} qs={qs} onCfg={saveCfg} onAdd={addQuestion} onDel={delQuestion} />
       ) : tab === "cert" ? (
         <CertEditor emiteP={emiteP} emiteC={emiteC} signers={signers} onEmite={setEmite} onAddSigner={addSigner} onDelSigner={delSigner} />
-      ) : (
+      ) : tab === "manual" ? (
         <InscripcionManualTab courseId={courseId} />
+      ) : (
+        <InscriptosTab initial={data.inscriptos} />
       )}
     </div>
   );
@@ -767,6 +774,59 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------- inscriptos del curso: listado + baja completa (sin dejar rastro) ----------
+type Inscripto = {
+  id: string; estado: string; origen: string; fecha_inscripcion: string;
+  profiles: { nombre: string | null; email: string | null } | null;
+};
+
+const ORIGEN_LABEL_INS: Record<string, string> = {
+  compra: "Mercado Pago", manual: "Online", masivo: "Manual", cupo: "Cupo",
+};
+
+const ESTADO_LABEL: Record<string, string> = { activa: "Activa", completada: "Completada", cancelada: "Cancelada" };
+
+function InscriptosTab({ initial }: { initial: Inscripto[] }) {
+  const supabase = createClient();
+  const [lista, setLista] = useState<Inscripto[]>(initial);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  async function darDeBaja(i: Inscripto) {
+    const nombre = i.profiles?.nombre || i.profiles?.email || "este participante";
+    if (!confirm(`¿Dar de baja a ${nombre}? Se borra la inscripción por completo — progreso, examen y certificado incluidos. No se puede deshacer.`)) return;
+    setBusyId(i.id);
+    const { error } = await supabase.from("enrollments").delete().eq("id", i.id);
+    setBusyId(null);
+    if (error) { alert("No se pudo dar de baja: " + error.message); return; }
+    setLista(lista.filter((x) => x.id !== i.id));
+  }
+
+  if (!lista.length) return <div className="card empty">Todavía no hay nadie inscripto en este curso.</div>;
+
+  return (
+    <div className="tbl-scroll">
+      <table className="tbl">
+        <thead><tr><th>Alumno</th><th>Estado</th><th>Origen</th><th>Inscripción</th><th></th></tr></thead>
+        <tbody>
+          {lista.map((i) => (
+            <tr key={i.id}>
+              <td style={{ fontWeight: 600 }}>{i.profiles?.nombre || i.profiles?.email || "—"}</td>
+              <td><span className={`st ${i.estado}`}>{ESTADO_LABEL[i.estado] ?? i.estado}</span></td>
+              <td>{ORIGEN_LABEL_INS[i.origen] ?? i.origen}</td>
+              <td>{new Date(i.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
+              <td>
+                <button className="btn ghost danger sm" onClick={() => darDeBaja(i)} disabled={busyId === i.id}>
+                  {busyId === i.id ? "Dando de baja…" : "Dar de baja"}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

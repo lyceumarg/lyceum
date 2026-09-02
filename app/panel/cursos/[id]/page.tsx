@@ -23,6 +23,7 @@ export default async function EditorPage({ params }: { params: { id: string } })
     { data: signers },
     { data: instructores },
     { data: categorias },
+    { data: inscriptos },
   ] = await Promise.all([
     supabase
       .from("courses")
@@ -58,6 +59,11 @@ export default async function EditorPage({ params }: { params: { id: string } })
       .select("id, nombre")
       .eq("tenant_id", user.tenantId)
       .order("nombre"),
+    supabase
+      .from("enrollments")
+      .select("id, estado, origen, fecha_inscripcion, profiles(nombre, email)")
+      .eq("course_id", params.id)
+      .order("fecha_inscripcion", { ascending: false }),
   ]);
 
   if (!course) notFound();
@@ -84,6 +90,7 @@ export default async function EditorPage({ params }: { params: { id: string } })
     signers: (signers ?? []) as any,
     instructores: (instructores ?? []) as any,
     categorias: (categorias ?? []) as any,
+    inscriptos: (inscriptos ?? []) as any,
     preguntas: (preguntas ?? []).map((q: any) => ({
       id: q.id,
       enunciado: q.enunciado,

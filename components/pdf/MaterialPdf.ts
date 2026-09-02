@@ -263,7 +263,7 @@ export async function renderMaterialPdf(d: MaterialData): Promise<Uint8Array> {
     heading(m.titulo, 17, ink, 14, 16);
 
     for (const [li, l] of m.lessons.entries()) {
-      heading(`${mi + 1}.${li + 1}  ${l.titulo}`, 12.5, ink, 16, 12);
+      heading(`${mi + 1}.${li + 1}  ${l.titulo}`, 12.5, ink, 16, 22);
 
       for (const b of l.blocks) {
         const c = b.contenido || {};

@@ -33,6 +33,7 @@ export default async function GananciasPage() {
   const ticketProm = validas.length ? totalIngresos / validas.length : 0;
   const viaMP = validas.filter((e) => e.origen === "compra").length;
   const porFuera = validas.length - viaMP;
+  const gratuitas = validas.filter((e) => Number(e.courses?.precio ?? 0) === 0).length;
 
   const meses: { label: string; key: string; total: number }[] = [];
   const now = new Date();
@@ -90,6 +91,7 @@ export default async function GananciasPage() {
         <div className="card kpi"><div className="n">{validas.length}</div><div className="l">Inscripciones</div></div>
         <div className="card kpi"><div className="n">{money(ticketProm)}</div><div className="l">Ticket promedio</div></div>
         <div className="card kpi"><div className="n">{viaMP}</div><div className="l">Vía Mercado Pago ({porFuera} por fuera)</div></div>
+        <div className="card kpi"><div className="n">{gratuitas}</div><div className="l">Inscriptas en cursos gratuitos</div></div>
       </div>
 
       <div className="card" style={{ padding: 22, marginBottom: 22 }}>

@@ -299,7 +299,7 @@ img{max-width:100%}
 .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .panel-head h1{font-size:25px;font-weight:700}
 
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px}
 @media(max-width:760px){.kpis{grid-template-columns:1fr 1fr}}
 .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
 .kpi .n{font-weight:700;font-size:26px}
@@ -312,6 +312,7 @@ table.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid v
 .tbl tr.clk{cursor:pointer}.tbl tr.clk:hover{background:#fafafc}
 .st{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:99px;letter-spacing:.02em}
 .st.pub{background:#dcefe4;color:#1c5a3f}.st.draft{background:#efe7d4;color:#7a5f1f}
+.st.completada{background:#dcefe4;color:#1c5a3f}.st.activa{background:#e3e6f7;color:#2a2f77}.st.cancelada{background:#f3dede;color:#8a2f2f}
 
 .barchart{display:flex;align-items:flex-end;gap:14px;height:150px;padding:20px}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
