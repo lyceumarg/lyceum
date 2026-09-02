@@ -11,12 +11,14 @@ export default function CredCard({
   who,
   finalId,
   tenant = false,
+  delayMs = 0,
 }: {
   tag: string;
   title: string;
   who: string;
   finalId: string;
   tenant?: boolean;
+  delayMs?: number;
 }) {
   const idRef = useRef<HTMLSpanElement>(null);
   const checkRef = useRef<SVGSVGElement>(null);
@@ -39,7 +41,7 @@ export default function CredCard({
   }, [finalId]);
 
   return (
-    <div className="cred rv">
+    <div className="cred rv" style={delayMs ? { transitionDelay: `${delayMs}ms` } : undefined}>
       <div className="top">
         <span className="tag">{tag}</span>
         <span className="seal" style={{ borderColor: color }}>

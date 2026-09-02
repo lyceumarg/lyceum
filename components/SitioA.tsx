@@ -22,15 +22,15 @@ export default function SitioA() {
 
         <div className="hero">
           <div>
-            <span className="eyebrow">Plataforma de academias</span>
-            <h1>
+            <span className="eyebrow rv">Plataforma de academias</span>
+            <h1 className="rv" style={{ transitionDelay: "70ms" }}>
               Certificados que <em style={{ color: "var(--indigo)" }}>cualquiera</em> puede verificar.
             </h1>
-            <p style={{ fontSize: 17, color: "#3a3d4d", maxWidth: "36ch", margin: "20px 0 28px" }}>
+            <p className="rv" style={{ transitionDelay: "140ms", fontSize: 17, color: "#3a3d4d", maxWidth: "36ch", margin: "20px 0 28px" }}>
               Lanzá tu academia con marca propia y emití credenciales con validación pública. Vos ponés el
               contenido; la confianza viene incluida.
             </p>
-            <div className="hero-cta">
+            <div className="hero-cta rv" style={{ transitionDelay: "210ms" }}>
               <a href="mailto:hola@lyceum.com.ar" className="btn" style={{ background: "var(--indigo)" }}>
                 Crear mi academia →
               </a>
@@ -46,6 +46,7 @@ export default function SitioA() {
               title="Prevención de LA/FT"
               who="Emitido a nombre de un participante · Academia demo"
               finalId="LYC·2026·7Q4A"
+              delayMs={260}
             />
             <div className="marq">
               <div className="track">
@@ -94,7 +95,7 @@ export default function SitioA() {
                 destacar una idea o mostrar un caso práctico.
               </p>
             </div>
-            <div className="feature rv">
+            <div className="feature rv" style={{ transitionDelay: "90ms" }}>
               <h4>Dos formas de certificar</h4>
               <p>
                 Constancia de participación al completar el contenido, o certificado de aprobación al
@@ -110,7 +111,7 @@ export default function SitioA() {
                 con tu logo.
               </p>
             </div>
-            <div className="feature rv">
+            <div className="feature rv" style={{ transitionDelay: "90ms" }}>
               <h4>Tu marca, de punta a punta</h4>
               <p>
                 Dominio, logo y color propios en todo lo que ve el alumno. La plataforma queda como una
@@ -128,9 +129,13 @@ export default function SitioA() {
           </a>
         </div>
 
-        <footer style={{ padding: "34px 0 60px", borderTop: "1px solid var(--line)", marginTop: 10, fontFamily: "JetBrains Mono, monospace", fontSize: 11.5, letterSpacing: ".04em", color: "var(--muted)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <footer style={{ padding: "34px 0 60px", borderTop: "1px solid var(--line)", marginTop: 10, fontFamily: "JetBrains Mono, monospace", fontSize: 11.5, letterSpacing: ".04em", color: "var(--muted)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 14 }}>
           <span>LYCEUM · PLATAFORMA DE ACADEMIAS CON CERTIFICACIÓN</span>
-          <span>© {new Date().getFullYear()} Lyceum</span>
+          <div style={{ display: "flex", gap: 18 }}>
+            <a href="/terminos" style={{ color: "var(--muted)" }}>Términos</a>
+            <a href="/privacidad" style={{ color: "var(--muted)" }}>Privacidad</a>
+            <span>© {new Date().getFullYear()} Lyceum</span>
+          </div>
         </footer>
       </div>
     </div>
