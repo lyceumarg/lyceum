@@ -14,6 +14,7 @@ export default function Player({
   categoria,
   modulos,
   completadasIniciales,
+  esPrueba = false,
 }: {
   courseId: string;
   enrollmentId: string;
@@ -21,6 +22,7 @@ export default function Player({
   categoria: string | null;
   modulos: Modulo[];
   completadasIniciales: string[];
+  esPrueba?: boolean;
 }) {
   const flat = useMemo(
     () => modulos.flatMap((m) => m.lessons.map((l) => ({ ...l, modulo: m.titulo }))),
@@ -43,6 +45,12 @@ export default function Player({
 
   return (
     <div className="wrap">
+      {esPrueba && (
+        <div className="msg" style={{ background: "#eef0fb", borderColor: "#c7cbef", color: "#2a2f77", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
+          <span>🧪 Estás viendo este curso en modo prueba — no cuenta como una inscripción real.</span>
+          <Link href={`/panel/cursos/${courseId}`} className="btn ghost sm">← Volver al editor</Link>
+        </div>
+      )}
       <Link href="/mis-cursos" className="back">← Volver a mis cursos</Link>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>

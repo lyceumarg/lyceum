@@ -14,7 +14,7 @@ export default async function CursarPage({ params }: { params: { id: string } })
   // Inscripción activa del usuario en este curso.
   const { data: enroll } = await supabase
     .from("enrollments")
-    .select("id, estado")
+    .select("id, estado, es_prueba")
     .eq("course_id", params.id)
     .eq("user_id", user.userId)
     .maybeSingle();
@@ -61,6 +61,7 @@ export default async function CursarPage({ params }: { params: { id: string } })
       categoria={curso?.categoria ?? null}
       modulos={modulos}
       completadasIniciales={completadas}
+      esPrueba={!!enroll.es_prueba}
     />
   );
 }
