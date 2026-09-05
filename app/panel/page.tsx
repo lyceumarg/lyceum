@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import NewCourseButton from "@/components/panel/NewCourseButton";
+import ImportarWordButton from "@/components/panel/ImportarWordButton";
+import ImportarPptxButton from "@/components/panel/ImportarPptxButton";
 
 export const metadata = { title: "Panel" };
 
@@ -23,7 +25,11 @@ export default async function PanelHome() {
           <span className="eyebrow">Consola de la academia</span>
           <h2 style={{ fontSize: 26 }}>Cursos</h2>
         </div>
-        <NewCourseButton />
+        <div style={{ display: "flex", gap: 8 }}>
+          <NewCourseButton />
+          <ImportarWordButton />
+          <ImportarPptxButton />
+        </div>
       </div>
 
       <div className="kpis">

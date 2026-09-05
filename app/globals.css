@@ -461,6 +461,7 @@ textarea.ed-inp{resize:vertical}
 .blk-stage .t{position:absolute;top:12px;left:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em}
 .blk-play{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);display:grid;place-items:center;margin:0 auto;color:#e9ede6}
 .blk-rich{font-size:14.5px;color:#28352e;text-align:justify}
+.blk-rich img{max-width:100%;height:auto;border-radius:8px;display:block;margin:10px 0}
 .blk-rich p{margin-bottom:10px}
 .blk-rich ul{margin:8px 0 10px 20px;text-align:left}
 .blk-rich ol{margin:8px 0 10px 22px;text-align:left}
