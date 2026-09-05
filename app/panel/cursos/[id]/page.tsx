@@ -61,7 +61,7 @@ export default async function EditorPage({ params }: { params: { id: string } })
       .order("nombre"),
     supabase
       .from("enrollments")
-      .select("id, estado, origen, fecha_inscripcion, cortesia, profiles(nombre, email)")
+      .select("id, estado, origen, fecha_inscripcion, cortesia, es_prueba, profiles(nombre, email)")
       .eq("course_id", params.id)
       .order("fecha_inscripcion", { ascending: false }),
   ]);

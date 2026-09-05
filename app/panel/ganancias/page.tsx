@@ -9,6 +9,7 @@ type EnrollRow = {
   estado: string;
   fecha_inscripcion: string;
   cortesia: boolean;
+  es_prueba: boolean;
   courses: { titulo: string; precio: number } | null;
 };
 
@@ -25,12 +26,12 @@ export default async function GananciasPage() {
   // curso tenga precio.
   const { data } = await supabase
     .from("enrollments")
-    .select("id, origen, estado, fecha_inscripcion, cortesia, courses(titulo, precio)")
+    .select("id, origen, estado, fecha_inscripcion, cortesia, es_prueba, courses(titulo, precio)")
     .order("fecha_inscripcion", { ascending: false })
     .limit(1000);
 
   const todas = (data ?? []) as unknown as EnrollRow[];
-  const validas = todas.filter((e) => e.estado !== "cancelada");
+  const validas = todas.filter((e) => e.estado !== "cancelada" && !e.es_prueba);
 
   const totalIngresos = validas.reduce((s, e) => s + (e.cortesia ? 0 : Number(e.courses?.precio ?? 0)), 0);
   const ticketProm = validas.length ? totalIngresos / validas.length : 0;

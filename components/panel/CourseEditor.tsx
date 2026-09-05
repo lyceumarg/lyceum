@@ -24,7 +24,7 @@ export type EditorData = {
   instructores: Instructor[];
   categorias: { id: string; nombre: string }[];
   inscriptos: {
-    id: string; estado: string; origen: string; fecha_inscripcion: string; cortesia: boolean;
+    id: string; estado: string; origen: string; fecha_inscripcion: string; cortesia: boolean; es_prueba: boolean;
     profiles: { nombre: string | null; email: string | null } | null;
   }[];
 };
@@ -260,6 +260,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
           </span>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="btn ghost danger" style={{ padding: "8px 14px", fontSize: 13 }} onClick={eliminarCurso}>Eliminar curso</button>
+            <VerComoParticipanteButton courseId={courseId} />
             <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={togglePublicar}>
               {course.estado === "publicado" ? "Despublicar" : "Publicar"}
             </button>
@@ -807,7 +808,7 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
 
 // ---------- inscriptos del curso: listado + baja completa (sin dejar rastro) ----------
 type Inscripto = {
-  id: string; estado: string; origen: string; fecha_inscripcion: string; cortesia: boolean;
+  id: string; estado: string; origen: string; fecha_inscripcion: string; cortesia: boolean; es_prueba: boolean;
   profiles: { nombre: string | null; email: string | null } | null;
 };
 
@@ -851,7 +852,10 @@ function InscriptosTab({ initial }: { initial: Inscripto[] }) {
         <tbody>
           {lista.map((i) => (
             <tr key={i.id}>
-              <td style={{ fontWeight: 600 }}>{i.profiles?.nombre || i.profiles?.email || "—"}</td>
+              <td style={{ fontWeight: 600 }}>
+                {i.profiles?.nombre || i.profiles?.email || "—"}
+                {i.es_prueba && <span className="pill t" style={{ marginLeft: 6, fontWeight: 400 }}>🧪 Prueba interna</span>}
+              </td>
               <td><span className={`st ${i.estado}`}>{ESTADO_LABEL[i.estado] ?? i.estado}</span></td>
               <td>{ORIGEN_LABEL_INS[i.origen] ?? i.origen}</td>
               <td>{new Date(i.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
@@ -871,5 +875,41 @@ function InscriptosTab({ initial }: { initial: Inscripto[] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+// ---------- ver el curso como lo vería un participante real ----------
+function VerComoParticipanteButton({ courseId }: { courseId: string }) {
+  const router = useRouter();
+  const [cargando, setCargando] = useState(false);
+
+  async function verComoParticipante() {
+    setCargando(true);
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setCargando(false); return; }
+
+    const { data: existente } = await supabase
+      .from("enrollments")
+      .select("id")
+      .eq("course_id", courseId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!existente) {
+      const tenantId = (user.app_metadata as { tenant_id?: string })?.tenant_id;
+      const { error } = await supabase.from("enrollments").insert({
+        tenant_id: tenantId, user_id: user.id, course_id: courseId,
+        origen: "manual", estado: "activa", es_prueba: true,
+      });
+      if (error) { alert("No se pudo preparar la prueba: " + error.message); setCargando(false); return; }
+    }
+    router.push(`/curso/${courseId}/cursar`);
+  }
+
+  return (
+    <button className="btn ghost" style={{ padding: "8px 14px", fontSize: 13 }} onClick={verComoParticipante} disabled={cargando} title="Te inscribe a vos mismo (sin afectar Ganancias ni Participantes) y te lleva a la cursada real">
+      {cargando ? "Preparando…" : "👁 Ver como participante"}
+    </button>
   );
 }
