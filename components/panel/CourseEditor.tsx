@@ -433,7 +433,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
 function blockSummary(b: Block) {
   const c = b.contenido ?? {};
   return c.titulo || c.title || c.nombre || c.name || c.pregunta || c.question ||
-    (c.html ? String(c.html).replace(/<[^>]+>/g, "").slice(0, 40) : "") || c.fuente || c.source || "—";
+    (c.html ? String(c.html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 100) : "") || c.fuente || c.source || "—";
 }
 
 // ---------- alta de bloque ----------

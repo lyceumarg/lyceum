@@ -348,7 +348,7 @@ table.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid v
 
 .ed-grid{display:grid;grid-template-columns:250px 1fr;gap:16px;align-items:start}
 @media(max-width:900px){.ed-grid{grid-template-columns:1fr}}
-.tree{padding:16px}
+.tree{padding:16px;max-height:calc(100vh - 140px);overflow-y:auto;position:sticky;top:20px}
 .tree h4{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;font-weight:700}
 .tmod{margin-bottom:12px}
 .trow{display:flex;align-items:center;gap:6px;margin-bottom:4px}
@@ -357,6 +357,8 @@ table.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid v
 .tinp:hover{border-color:var(--line)}.tinp:focus{border-color:var(--line-strong);background:#fff;outline:none}
 .tinp.les{font-weight:500;font-size:12.5px}
 .tles{display:flex;align-items:center;gap:7px;padding:6px 8px 6px 16px;border-radius:6px;cursor:pointer;font-size:12.5px;color:var(--muted)}
+.tles .tx{display:none;flex:0 0 auto}
+.tles:hover .tx,.tles.sel .tx{display:inline-flex}
 .tles:hover{background:var(--soft)}.tles.sel{background:var(--soft);color:var(--ink);font-weight:600}
 .tles-dot,.tles .dot{width:5px;height:5px;border-radius:50%;background:var(--line);flex:0 0 auto}
 .tles.sel .tles-dot,.tles.sel .dot{background:var(--indigo)}
@@ -387,7 +389,7 @@ textarea.ed-inp{resize:vertical}
 .ed-types button{padding:7px 12px;border:1px solid var(--line);border-radius:99px;font-size:12.5px;font-weight:500;background:#fff}
 .ed-types button:hover{background:var(--soft)}
 .blk-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:7px;background:#fafafa;font-size:12.5px}
-.blk-row .t{flex:1;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blk-row .t{flex:1;font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4}
 .qitem{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:#fff}
 .qopt-edit{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .qopt-edit input[type=radio]{accent-color:var(--verify);width:16px;height:16px;flex:0 0 auto}
