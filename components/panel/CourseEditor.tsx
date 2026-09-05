@@ -132,6 +132,12 @@ export default function CourseEditor({ data }: { data: EditorData }) {
 
   async function togglePublicar() {
     const nuevo = course.estado === "publicado" ? "borrador" : "publicado";
+    if (nuevo === "publicado") {
+      const ok = confirm(
+        `¿Publicar "${course.titulo}"? Va a aparecer en el catálogo y cualquiera va a poder inscribirse. Revisá el contenido antes de confirmar.`
+      );
+      if (!ok) return;
+    }
     const { error } = await supabase.from("courses").update({ estado: nuevo }).eq("id", courseId);
     if (error) return fail(error);
     setCourse({ ...course, estado: nuevo });
@@ -275,6 +281,12 @@ export default function CourseEditor({ data }: { data: EditorData }) {
           />
         </div>
       </div>
+
+      {course.estado === "publicado" && (
+        <div className="msg" style={{ background: "#fdf3e0", borderColor: "#e9cd8f", color: "#7a5f1f", border: "1px solid #e9cd8f", marginTop: 16 }}>
+          ⚠ Este curso está <strong>publicado</strong> — es visible en el catálogo y puede tener participantes reales. Los cambios que hagas acá se ven en vivo.
+        </div>
+      )}
 
       <div className="tabs">
         <button className={`tab${tab === "c" ? " on" : ""}`} onClick={() => setTab("c")}>Contenido</button>
