@@ -180,6 +180,22 @@ export default function CourseEditor({ data }: { data: EditorData }) {
     if (error) return fail(error);
     const copy = [...mods]; copy[mi].lessons = copy[mi].lessons.filter((_, k) => k !== li); setMods(copy); setSel(null);
   }
+  async function moveLesson(mi: number, li: number, dir: -1 | 1) {
+    const lj = li + dir;
+    const lecciones = mods[mi].lessons;
+    if (lj < 0 || lj >= lecciones.length) return;
+    const copy = [...mods];
+    const arr = [...lecciones];
+    [arr[li], arr[lj]] = [arr[lj], arr[li]];
+    copy[mi] = { ...copy[mi], lessons: arr };
+    setMods(copy);
+    if (sel?.m === mi && sel?.l === li) setSel({ m: mi, l: lj });
+    else if (sel?.m === mi && sel?.l === lj) setSel({ m: mi, l: li });
+    await Promise.all([
+      supabase.from("lessons").update({ orden: li }).eq("id", arr[li].id),
+      supabase.from("lessons").update({ orden: lj }).eq("id", arr[lj].id),
+    ]);
+  }
 
   const lesson = sel ? mods[sel.m]?.lessons[sel.l] : null;
 
@@ -202,6 +218,20 @@ export default function CourseEditor({ data }: { data: EditorData }) {
     const copy = [...mods];
     copy[sel.m].lessons[sel.l].blocks = lesson.blocks.filter((_, k) => k !== bi);
     setMods(copy);
+  }
+  async function moveBlock(bi: number, dir: -1 | 1) {
+    if (!sel || !lesson) return;
+    const bj = bi + dir;
+    if (bj < 0 || bj >= lesson.blocks.length) return;
+    const arr = [...lesson.blocks];
+    [arr[bi], arr[bj]] = [arr[bj], arr[bi]];
+    const copy = [...mods];
+    copy[sel.m].lessons[sel.l].blocks = arr;
+    setMods(copy);
+    await Promise.all([
+      supabase.from("content_blocks").update({ orden: bi }).eq("id", arr[bi].id),
+      supabase.from("content_blocks").update({ orden: bj }).eq("id", arr[bj].id),
+    ]);
   }
   async function updateBlock(bi: number, contenido: Record<string, any>) {
     if (!sel || !lesson) return;
@@ -313,6 +343,8 @@ export default function CourseEditor({ data }: { data: EditorData }) {
                     <span className="tles-dot" />
                     <input className="tinp les" defaultValue={l.titulo}
                       onClick={(e) => e.stopPropagation()} onBlur={(e) => renameLesson(mi, li, e.target.value)} />
+                    <button className="tx" title="Subir" disabled={li === 0} onClick={(e) => { e.stopPropagation(); moveLesson(mi, li, -1); }}>▲</button>
+                    <button className="tx" title="Bajar" disabled={li === m.lessons.length - 1} onClick={(e) => { e.stopPropagation(); moveLesson(mi, li, 1); }}>▼</button>
                     <button className="tx" onClick={(e) => { e.stopPropagation(); delLesson(mi, li); }}>✕</button>
                   </div>
                 ))}
@@ -357,6 +389,8 @@ export default function CourseEditor({ data }: { data: EditorData }) {
                       {["richtext", "destacado", "caso_practico"].includes(b.tipo) && (
                         <button className="tx" title="Editar" onClick={() => { setEditingBlock(bi); setDraftHtml(b.contenido?.html || ""); }}>✎</button>
                       )}
+                      <button className="tx" title="Subir" disabled={bi === 0} onClick={() => moveBlock(bi, -1)}>▲</button>
+                      <button className="tx" title="Bajar" disabled={bi === lesson.blocks.length - 1} onClick={() => moveBlock(bi, 1)}>▼</button>
                       <button className="tx" onClick={() => delBlock(bi)}>✕</button>
                     </div>
                   )
