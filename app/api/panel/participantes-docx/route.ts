@@ -38,17 +38,18 @@ function celda(text: string, width: number, opts: { bold?: boolean; header?: boo
   });
 }
 
-export async function GET() {
+export async function POST(request: Request) {
   const user = await getUserContext();
   if (!user || !isStaff(user.rol) || !user.tenantId) {
     return new NextResponse("No autorizado", { status: 403 });
   }
 
+  const body = await request.json().catch(() => null);
+  const filasOk: any[] = Array.isArray(body?.filas) ? body.filas : [];
+
   const supabase = createClient();
-  const [{ data: filas }, { data: branding }] = await Promise.all([
-    supabase.rpc("participantes_con_avance"),
-    supabase.from("tenant_branding").select("nombre_academia, logo_url").eq("tenant_id", user.tenantId).maybeSingle(),
-  ]);
+  const { data: branding } = await supabase
+    .from("tenant_branding").select("nombre_academia, logo_url").eq("tenant_id", user.tenantId).maybeSingle();
 
   const academia = branding?.nombre_academia ?? "Academia";
   const fechaConsulta = new Date().toLocaleString("es-AR", { dateStyle: "long", timeStyle: "short" });
@@ -68,8 +69,6 @@ export async function GET() {
       }
     } catch { /* si falla la carga del logo, el reporte sigue sin él */ }
   }
-
-  const filasOk = (filas ?? []) as any[];
 
   const headerRow = new TableRow({
     tableHeader: true,

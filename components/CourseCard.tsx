@@ -8,6 +8,7 @@ export type Course = {
   moneda: string;
   categoria: string | null;
   modulos: number;
+  portada_url?: string | null;
   instr_nombre?: string | null;
   instr_foto_url?: string | null;
 };
@@ -15,7 +16,13 @@ export type Course = {
 export default function CourseCard({ c }: { c: Course }) {
   return (
     <Link href={`/curso/${c.id}`} className="course">
-      <div className="band">{c.categoria && <span className="k">{c.categoria}</span>}</div>
+      {c.portada_url ? (
+        <div className="thumb" style={{ backgroundImage: `url(${c.portada_url})` }}>
+          {c.categoria && <span className="k">{c.categoria}</span>}
+        </div>
+      ) : (
+        <div className="band">{c.categoria && <span className="k">{c.categoria}</span>}</div>
+      )}
       <div className="body">
         <h4>{c.titulo}</h4>
         <span className="badge">✓ Certifica</span>

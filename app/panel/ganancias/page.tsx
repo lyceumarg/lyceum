@@ -11,6 +11,7 @@ type EnrollRow = {
   cortesia: boolean;
   es_prueba: boolean;
   courses: { titulo: string; precio: number } | null;
+  profiles: { nombre: string | null; email: string | null } | null;
 };
 
 const money = (n: number) => `$${new Intl.NumberFormat("es-AR").format(Math.round(n))}`;
@@ -26,7 +27,7 @@ export default async function GananciasPage() {
   // curso tenga precio.
   const { data } = await supabase
     .from("enrollments")
-    .select("id, origen, estado, fecha_inscripcion, cortesia, es_prueba, courses(titulo, precio)")
+    .select("id, origen, estado, fecha_inscripcion, cortesia, es_prueba, courses(titulo, precio), profiles(nombre, email)")
     .order("fecha_inscripcion", { ascending: false })
     .limit(1000);
 
@@ -62,6 +63,7 @@ export default async function GananciasPage() {
 
   const csvRows = validas.map((e) => ({
     fecha: new Date(e.fecha_inscripcion).toLocaleDateString("es-AR"),
+    participante: e.profiles?.nombre || e.profiles?.email || "—",
     curso: e.courses?.titulo ?? "—",
     origen: origenLabel[e.origen] ?? e.origen,
     monto: e.cortesia ? 0 : Number(e.courses?.precio ?? 0),
@@ -80,6 +82,7 @@ export default async function GananciasPage() {
           filename="inscripciones"
           columns={[
             { key: "fecha", label: "Fecha" },
+            { key: "participante", label: "Participante" },
             { key: "curso", label: "Curso" },
             { key: "origen", label: "Origen" },
             { key: "monto", label: "Monto (ARS)" },
@@ -122,12 +125,13 @@ export default async function GananciasPage() {
       {validas.length ? (
         <div className="tbl-scroll">
         <table className="tbl">
-          <thead><tr><th>Fecha</th><th>Curso</th><th>Origen</th><th>Monto</th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Participante</th><th>Curso</th><th>Origen</th><th>Monto</th></tr></thead>
           <tbody>
             {validas.slice(0, 100).map((e) => (
               <tr key={e.id}>
                 <td>{new Date(e.fecha_inscripcion).toLocaleDateString("es-AR")}</td>
-                <td style={{ fontWeight: 600 }}>{e.courses?.titulo ?? "—"}</td>
+                <td style={{ fontWeight: 600 }}>{e.profiles?.nombre || e.profiles?.email || "—"}</td>
+                <td>{e.courses?.titulo ?? "—"}</td>
                 <td><span className={`pill ${origenClase[e.origen] ?? ""}`}>{origenLabel[e.origen] ?? e.origen}</span></td>
                 <td className="mono">{e.cortesia ? <span className="pill t">Cortesía</span> : money(Number(e.courses?.precio ?? 0))}</td>
               </tr>

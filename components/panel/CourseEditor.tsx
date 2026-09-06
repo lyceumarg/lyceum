@@ -15,7 +15,7 @@ type Question = {
   options: { id: string; texto: string; es_correcta: boolean }[];
 };
 export type EditorData = {
-  course: { id: string; titulo: string; descripcion: string | null; categoria: string | null; precio: number; estado: string; emite_participacion: boolean; emite_certificacion: boolean; capacitador_id: string | null };
+  course: { id: string; titulo: string; descripcion: string | null; categoria: string | null; precio: number; estado: string; emite_participacion: boolean; emite_certificacion: boolean; capacitador_id: string | null; portada_url: string | null };
   tenantId: string;
   modulos: Module[];
   examCfg: { cant_preguntas: number; nota_corte: number; max_intentos: number };
@@ -27,6 +27,7 @@ export type EditorData = {
     id: string; estado: string; origen: string; fecha_inscripcion: string; cortesia: boolean; es_prueba: boolean;
     profiles: { nombre: string | null; email: string | null } | null;
   }[];
+  participantesTenant: { id: string; nombre: string | null; email: string | null }[];
 };
 type Signer = { id: string; nombre: string; cargo: string | null; firma_url: string | null; orden: number };
 export type Instructor = { id: string; nombre: string; headline: string | null; bio: string | null; foto_url: string | null; linkedin_url: string | null };
@@ -61,9 +62,22 @@ export default function CourseEditor({ data }: { data: EditorData }) {
   const [editingBlock, setEditingBlock] = useState<number | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [draftHtml, setDraftHtml] = useState("");
+  const [subiendoPortada, setSubiendoPortada] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   function fail(e: any) { setErr(e?.message ?? "Ocurrió un error"); }
+
+  async function subirPortada(file: File) {
+    setSubiendoPortada(true); setErr(null);
+    const path = `${tenantId}/portada-${courseId}-${Date.now()}.${file.name.split(".").pop()}`;
+    const up = await supabase.storage.from("contenido-curso").upload(path, file);
+    if (up.error) { fail(up.error); setSubiendoPortada(false); return; }
+    const url = supabase.storage.from("contenido-curso").getPublicUrl(path).data.publicUrl;
+    const { error } = await supabase.from("courses").update({ portada_url: url }).eq("id", courseId);
+    setSubiendoPortada(false);
+    if (error) return fail(error);
+    setCourse({ ...course, portada_url: url });
+  }
 
   // ---------- certificado: tipos y firmantes ----------
   async function setEmite(field: "emite_participacion" | "emite_certificacion", val: boolean) {
@@ -273,22 +287,42 @@ export default function CourseEditor({ data }: { data: EditorData }) {
 
       {/* cabecera del curso */}
       <div className="card" style={{ padding: 20, marginBottom: 4 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12 }}>
-          <div><label className="ed-lab">Título</label>
-            <input className="ed-inp" value={course.titulo}
-              onChange={(e) => setCourse({ ...course, titulo: e.target.value })} onBlur={() => guardarCurso()} /></div>
-          <div><label className="ed-lab">Categoría</label>
-            <select className="ed-inp" value={course.categoria ?? ""}
-              onChange={(e) => { const v = e.target.value || null; setCourse({ ...course, categoria: v }); guardarCurso({ categoria: v }); }}>
-              <option value="">Sin categoría</option>
-              {course.categoria && !data.categorias.some((c) => c.nombre === course.categoria) && (
-                <option value={course.categoria}>{course.categoria} (no está en la lista)</option>
-              )}
-              {data.categorias.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
-            </select></div>
-          <div><label className="ed-lab">Precio (ARS)</label>
-            <input className="ed-inp" type="number" value={course.precio}
-              onChange={(e) => setCourse({ ...course, precio: Number(e.target.value) })} onBlur={() => guardarCurso()} /></div>
+        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 16, marginBottom: 14 }}>
+          <div>
+            <label className="ed-lab">Portada</label>
+            <div
+              className="course-thumb-preview"
+              style={course.portada_url ? { backgroundImage: `url(${course.portada_url})` } : undefined}
+            >
+              {!course.portada_url && <span>Sin imagen</span>}
+            </div>
+            <label className="btn ghost sm" style={{ marginTop: 8, display: "inline-block", cursor: "pointer" }}>
+              {subiendoPortada ? "Subiendo…" : course.portada_url ? "Cambiar" : "Subir imagen"}
+              <input type="file" accept="image/png,image/jpeg,image/webp" style={{ display: "none" }}
+                disabled={subiendoPortada}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) subirPortada(f); }} />
+            </label>
+            <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+              Se muestra con un filtro del color de la academia, para que todas las portadas queden parejas.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12, alignContent: "start" }}>
+            <div><label className="ed-lab">Título</label>
+              <input className="ed-inp" value={course.titulo}
+                onChange={(e) => setCourse({ ...course, titulo: e.target.value })} onBlur={() => guardarCurso()} /></div>
+            <div><label className="ed-lab">Categoría</label>
+              <select className="ed-inp" value={course.categoria ?? ""}
+                onChange={(e) => { const v = e.target.value || null; setCourse({ ...course, categoria: v }); guardarCurso({ categoria: v }); }}>
+                <option value="">Sin categoría</option>
+                {course.categoria && !data.categorias.some((c) => c.nombre === course.categoria) && (
+                  <option value={course.categoria}>{course.categoria} (no está en la lista)</option>
+                )}
+                {data.categorias.map((c) => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+              </select></div>
+            <div><label className="ed-lab">Precio (ARS)</label>
+              <input className="ed-inp" type="number" value={course.precio}
+                onChange={(e) => setCourse({ ...course, precio: Number(e.target.value) })} onBlur={() => guardarCurso()} /></div>
+          </div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <span className={`st ${course.estado === "publicado" ? "pub" : "draft"}`}>
@@ -422,7 +456,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
       ) : tab === "cert" ? (
         <CertEditor emiteP={emiteP} emiteC={emiteC} signers={signers} onEmite={setEmite} onAddSigner={addSigner} onDelSigner={delSigner} />
       ) : tab === "manual" ? (
-        <InscripcionManualTab courseId={courseId} />
+        <InscripcionManualTab courseId={courseId} participantes={data.participantesTenant} />
       ) : (
         <InscriptosTab initial={data.inscriptos} />
       )}
@@ -757,21 +791,22 @@ function CapacitadorPicker({
 // ---------- inscripción manual: pegar lista, crea cuenta si falta + inscribe ----------
 type ResultadoMasivo = { email: string; estado: string; detalle?: string };
 
-function InscripcionManualTab({ courseId }: { courseId: string }) {
+function InscripcionManualTab({ courseId, participantes }: { courseId: string; participantes: { id: string; nombre: string | null; email: string | null }[] }) {
   const [lista, setLista] = useState("");
+  const [seleccionado, setSeleccionado] = useState("");
   const [cortesia, setCortesia] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [resultados, setResultados] = useState<ResultadoMasivo[] | null>(null);
   const [invalidas, setInvalidas] = useState<string[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
-  async function enviar() {
+  async function enviarLista(listaAEnviar: string) {
     setEnviando(true); setErr(null); setResultados(null); setInvalidas([]);
     try {
       const res = await fetch("/api/panel/inscripcion-manual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ courseId, lista, cortesia }),
+        body: JSON.stringify({ courseId, lista: listaAEnviar, cortesia }),
       });
       const data = await res.json();
       if (!res.ok) { setErr(data.error ?? "No se pudo procesar la lista"); return; }
@@ -782,6 +817,18 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
     } finally {
       setEnviando(false);
     }
+  }
+
+  async function enviar() {
+    await enviarLista(lista);
+  }
+
+  async function inscribirSeleccionado() {
+    const p = participantes.find((x) => x.id === seleccionado);
+    if (!p?.email) return;
+    const linea = p.nombre ? `${p.email}, ${p.nombre}` : p.email;
+    await enviarLista(linea);
+    setSeleccionado("");
   }
 
   const etiqueta: Record<string, string> = {
@@ -798,7 +845,28 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
   return (
     <div>
       <div className="card" style={{ padding: 20, marginBottom: 16 }}>
-        <label className="ed-lab">Inscripción manual</label>
+        <label className="ed-lab">Inscribir a alguien ya registrado</label>
+        <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 0, marginBottom: 10 }}>
+          Elegilo de la lista de cuentas que ya existen en esta academia — no hace falta que sepas su email de memoria.
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <select className="ed-inp" style={{ marginBottom: 0 }} value={seleccionado} onChange={(e) => setSeleccionado(e.target.value)}>
+            <option value="">Elegir participante…</option>
+            {participantes.map((p) => (
+              <option key={p.id} value={p.id}>{p.nombre || "(sin nombre)"} — {p.email}</option>
+            ))}
+          </select>
+          <button className="btn accent" style={{ whiteSpace: "nowrap" }} onClick={inscribirSeleccionado} disabled={enviando || !seleccionado}>
+            {enviando ? "Procesando…" : "Inscribir"}
+          </button>
+        </div>
+        {!participantes.length && (
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 8 }}>Todavía no hay ninguna cuenta registrada en esta academia.</p>
+        )}
+      </div>
+
+      <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+        <label className="ed-lab">Inscripción manual por lista</label>
         <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 0, marginBottom: 10 }}>
           Un alumno por línea: <code>email</code> o <code>email, Nombre Apellido</code>. Si el email no
           tiene cuenta en la academia, se crea automáticamente (con acceso vía &quot;Olvidé mi contraseña&quot;
@@ -814,7 +882,6 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
           value={lista}
           onChange={(e) => setLista(e.target.value)}
         />
-        {err && <div className="msg err" style={{ marginTop: 4 }}>{err}</div>}
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, margin: "10px 0" }}>
           <input type="checkbox" checked={cortesia} onChange={(e) => setCortesia(e.target.checked)} />
           Marcar esta tanda como cortesía (no cuenta como ingreso en Ganancias, aunque el curso tenga precio)
@@ -823,6 +890,8 @@ function InscripcionManualTab({ courseId }: { courseId: string }) {
           {enviando ? "Procesando…" : "Inscribir lista"}
         </button>
       </div>
+
+      {err && <div className="msg err" style={{ marginBottom: 16 }}>{err}</div>}
 
       {invalidas.length > 0 && (
         <div className="msg err" style={{ marginBottom: 16 }}>

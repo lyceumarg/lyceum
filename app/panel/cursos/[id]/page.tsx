@@ -11,10 +11,10 @@ export default async function EditorPage({ params }: { params: { id: string } })
   if (!user) redirect("/login");
   const supabase = createClient();
 
-  // Ninguna de estas 7 consultas depende del resultado de las demás — antes
+  // Ninguna de estas 9 consultas depende del resultado de las demás — antes
   // se pedían una atrás de la otra (await secuencial) y el tiempo de espera
   // de cada una se sumaba. Disparándolas todas juntas, la carga total tarda
-  // lo que tarda la MÁS LENTA de las 7, no la suma de las 7.
+  // lo que tarda la MÁS LENTA de las 9, no la suma de las 9.
   const [
     { data: course },
     { data: mods },
@@ -24,10 +24,11 @@ export default async function EditorPage({ params }: { params: { id: string } })
     { data: instructores },
     { data: categorias },
     { data: inscriptos },
+    { data: participantesTenant },
   ] = await Promise.all([
     supabase
       .from("courses")
-      .select("id, titulo, descripcion, categoria, precio, estado, emite_participacion, emite_certificacion, capacitador_id")
+      .select("id, titulo, descripcion, categoria, precio, estado, emite_participacion, emite_certificacion, capacitador_id, portada_url")
       .eq("id", params.id)
       .maybeSingle(),
     supabase
@@ -64,6 +65,11 @@ export default async function EditorPage({ params }: { params: { id: string } })
       .select("id, estado, origen, fecha_inscripcion, cortesia, es_prueba, profiles(nombre, email)")
       .eq("course_id", params.id)
       .order("fecha_inscripcion", { ascending: false }),
+    supabase
+      .from("profiles")
+      .select("id, nombre, email")
+      .eq("tenant_id", user.tenantId)
+      .order("nombre"),
   ]);
 
   if (!course) notFound();
@@ -91,6 +97,7 @@ export default async function EditorPage({ params }: { params: { id: string } })
     instructores: (instructores ?? []) as any,
     categorias: (categorias ?? []) as any,
     inscriptos: (inscriptos ?? []) as any,
+    participantesTenant: (participantesTenant ?? []) as any,
     preguntas: (preguntas ?? []).map((q: any) => ({
       id: q.id,
       enunciado: q.enunciado,

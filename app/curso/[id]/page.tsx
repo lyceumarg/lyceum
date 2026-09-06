@@ -19,6 +19,7 @@ type Detail = {
   precio: number;
   moneda: string;
   categoria: string | null;
+  portada_url: string | null;
   corte: number;
   modulos: { titulo: string; lecciones: string[] | null }[];
   capacitador: Capacitador | null;
@@ -50,6 +51,9 @@ export default async function CursoPage({ params }: { params: { id: string } }) 
       <Link href="/" className="back">← Volver al catálogo</Link>
       <div className="detail-grid">
         <div>
+          {detail.portada_url && (
+            <div className="detail-thumb" style={{ backgroundImage: `url(${detail.portada_url})` }} />
+          )}
           {detail.categoria && <span className="eyebrow t">{detail.categoria}</span>}
           <h1 style={{ fontSize: 32, fontWeight: 800, margin: "6px 0 14px" }}>{detail.titulo}</h1>
           <p style={{ color: "var(--muted)", fontSize: 15.5, maxWidth: "60ch" }}>{detail.descripcion}</p>
