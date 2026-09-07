@@ -323,6 +323,12 @@ export default function CourseEditor({ data }: { data: EditorData }) {
               <input className="ed-inp" type="number" value={course.precio}
                 onChange={(e) => setCourse({ ...course, precio: Number(e.target.value) })} onBlur={() => guardarCurso()} /></div>
           </div>
+          <div>
+            <label className="ed-lab">Descripción (se muestra en la página de inscripción)</label>
+            <textarea className="ed-inp" rows={3} style={{ margin: 0 }} value={course.descripcion ?? ""}
+              placeholder="Uno o dos párrafos contando de qué trata el curso y a quién está dirigido."
+              onChange={(e) => setCourse({ ...course, descripcion: e.target.value })} onBlur={() => guardarCurso()} />
+          </div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
           <span className={`st ${course.estado === "publicado" ? "pub" : "draft"}`}>
