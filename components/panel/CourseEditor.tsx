@@ -306,6 +306,7 @@ export default function CourseEditor({ data }: { data: EditorData }) {
               Se muestra con un filtro del color de la academia, para que todas las portadas queden parejas.
             </p>
           </div>
+          <div>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12, alignContent: "start" }}>
             <div><label className="ed-lab">Título</label>
               <input className="ed-inp" value={course.titulo}
@@ -323,11 +324,12 @@ export default function CourseEditor({ data }: { data: EditorData }) {
               <input className="ed-inp" type="number" value={course.precio}
                 onChange={(e) => setCourse({ ...course, precio: Number(e.target.value) })} onBlur={() => guardarCurso()} /></div>
           </div>
-          <div>
+          <div style={{ marginTop: 12 }}>
             <label className="ed-lab">Descripción (se muestra en la página de inscripción)</label>
-            <textarea className="ed-inp" rows={3} style={{ margin: 0 }} value={course.descripcion ?? ""}
+            <textarea className="ed-inp" rows={4} style={{ margin: 0 }} value={course.descripcion ?? ""}
               placeholder="Uno o dos párrafos contando de qué trata el curso y a quién está dirigido."
               onChange={(e) => setCourse({ ...course, descripcion: e.target.value })} onBlur={() => guardarCurso()} />
+          </div>
           </div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
