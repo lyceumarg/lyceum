@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/auth";
 import BrandingEditor from "@/components/panel/BrandingEditor";
 import CategoriasManager from "@/components/panel/CategoriasManager";
+import StaffManager from "@/components/panel/StaffManager";
 
 export const metadata = { title: "Institucional" };
 
@@ -21,6 +22,13 @@ export default async function InstitucionalPage() {
     .from("categorias")
     .select("id, nombre")
     .eq("tenant_id", user.tenantId)
+    .order("nombre");
+
+  const { data: admins } = await supabase
+    .from("profiles")
+    .select("id, nombre, email")
+    .eq("tenant_id", user.tenantId)
+    .eq("rol", "tenant_admin")
     .order("nombre");
 
   return (
@@ -42,6 +50,9 @@ export default async function InstitucionalPage() {
       />
       <div style={{ marginTop: 20 }}>
         <CategoriasManager tenantId={user.tenantId!} initial={categorias ?? []} />
+      </div>
+      <div style={{ marginTop: 20 }}>
+        <StaffManager tenantId={user.tenantId!} initial={admins ?? []} miPropioId={user.userId} />
       </div>
     </>
   );
