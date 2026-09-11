@@ -1,13 +1,11 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 export type Admin = { id: string; nombre: string | null; email: string | null };
 
 export default function StaffManager({
   tenantId, initial, miPropioId,
 }: { tenantId: string; initial: Admin[]; miPropioId: string }) {
-  const supabase = createClient();
   const [lista, setLista] = useState<Admin[]>(initial);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -22,34 +20,29 @@ export default function StaffManager({
       return;
     }
     setBusy(true);
-    const { data: persona, error: errBuscar } = await supabase
-      .from("profiles")
-      .select("id, nombre, email")
-      .eq("tenant_id", tenantId)
-      .ilike("email", correo)
-      .maybeSingle();
-    if (errBuscar) { setBusy(false); setErr(errBuscar.message); return; }
-    if (!persona) {
-      setBusy(false);
-      setErr("Esa persona todavía no tiene una cuenta en tu academia — pedile que se registre primero, y después agregala de nuevo acá.");
-      return;
-    }
-    const { error: errUpdate } = await supabase.from("profiles").update({ rol: "tenant_admin" }).eq("id", persona.id);
+    const res = await fetch("/api/panel/staff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "agregar", email: correo }),
+    });
+    const data = await res.json();
     setBusy(false);
-    if (errUpdate) { setErr(errUpdate.message); return; }
-    setLista([...lista, persona as Admin]);
+    if (!res.ok) { setErr(data.error || "No se pudo agregar."); return; }
+    setLista([...lista, data.persona as Admin]);
     setEmail("");
   }
 
   async function quitar(a: Admin) {
-    if (lista.length <= 1) {
-      alert("No podés quitar al único administrador de la academia — agregá otro primero.");
-      return;
-    }
     const nombre = a.nombre || a.email || "esta persona";
     if (!confirm(`¿Quitarle el rol de administrador a ${nombre}? Va a pasar a tener una cuenta normal de participante.`)) return;
-    const { error } = await supabase.from("profiles").update({ rol: "participante" }).eq("id", a.id);
-    if (error) { alert("No se pudo quitar: " + error.message); return; }
+    setErr(null);
+    const res = await fetch("/api/panel/staff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ accion: "quitar", userId: a.id }),
+    });
+    const data = await res.json();
+    if (!res.ok) { alert(data.error || "No se pudo quitar."); return; }
     setLista(lista.filter((x) => x.id !== a.id));
   }
 
